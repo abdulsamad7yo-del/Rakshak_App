@@ -24,3 +24,25 @@ export const stopRecording = async (): Promise<string> => {
     return "";
   }
 };
+// import AudioRecord from "react-native-audio-record";
+
+// export const initAudio = async () => {
+//   AudioRecord.init({
+//     sampleRate: 16000,
+//     channels: 1,
+//     bitsPerSample: 16,
+//     audioSource: 6,
+//     wavFile: "audio.wav",
+//   });
+// };
+
+// export const startRecording = async () => AudioRecord.start();
+
+// export const stopRecording = async (): Promise<string> => {
+//   try {
+//     return await AudioRecord.stop();
+//   } catch {
+//     return "";
+//   }
+// };
+

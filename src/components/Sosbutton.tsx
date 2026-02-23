@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, Alert, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { Animated, Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { getCurrentLocation, LocationCoords } from "../services/locationService";
@@ -17,6 +17,8 @@ import { initVoiceRecognizer, stopVoiceRecognizer } from "../services/voiceRecog
 interface UserData { id: string; }
 
 const AUDIO_LIMIT_SEC = 120
+const LOCATION_LIMIT_SEC = 60
+const PHOTO_CAPTURE_LIMIT_SEC = 120
 
 export default function SOSButton() {
   const pulse = useRef(new Animated.Value(1)).current;
@@ -71,14 +73,7 @@ export default function SOSButton() {
       }
     })();
 
-    const animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, { toValue: 1.15, duration: 900, useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 1, duration: 900, useNativeDriver: true }),
-      ])
-    );
-    animation.start();
-    return () => animation.stop();
+    
   }, []);
 
   useEffect(() => {
@@ -159,102 +154,12 @@ export default function SOSButton() {
   };
 
 
-
-
-  // const audioStopped = useRef(false);
-
-
-  //   const startAudio = async () => {
-  //     console.log("🎙 Requesting audio permission...");
-  //     if (!(await requestAudioPermission())) return;
-
-  //     console.log("🎙 Starting audio recording...");
-  //     audioStopped.current = false; // prevent double stop
-  //     await startRecording();
-  //     setRecordTime(0);
-
-  //     // Increment record time
-  //     recordInterval.current = setInterval(() => setRecordTime(prev => prev + 1), 1000);
-
-  //     // Auto-stop after 120 seconds
-  //     setTimeout(() => {
-  //       if (!audioStopped.current) {
-  //         console.log("⏱ 120s reached, stopping audio automatically...");
-  //         stopAudio();
-  //       }
-  //     }, 120000); // 120 seconds
-  //   };
-
-
-
-
-  // const stopAudio = async () => {
-  //   if (audioStopped.current) return; // already stopped
-  //   audioStopped.current = true;
-
-  //   if (recordInterval.current) clearInterval(recordInterval.current);
-
-  //   console.log("🛑 Stopping audio recording...");
-  //   const path = await stopRecording();
-  //   console.log("📂 Audio file path:", path);
-  //   console.log("sos", sosIdRef.current); // use ref instead of state
-
-  //   if (path && sosIdRef.current) {
-  //     try {
-  //       console.log("⬆️ Uploading audio...");
-  //       await uploadAudio(path, sosIdRef.current);
-  //       console.log("✅ Audio uploaded successfully");
-  //     } catch (err) {
-  //       console.error("❌ Audio upload failed:", err);
-  //     }
-  //   }
-  // };
-
-  // old
-  // const startAudio = async () => {
-  //   console.log("🎙 Requesting audio permission...");
-  //   if (!(await requestAudioPermission())) {
-  //     console.warn("⚠️ Audio permission denied");
-  //     return;
-  //   }
-
-  //   console.log("🎙 Starting audio recording...");
-  //   await startRecording();
-  //   setRecordTime(0);
-  //   recordInterval.current = setInterval(() => setRecordTime((prev) => prev + 1), 1000);
-  // };
-  // const stopAudio = async () => {
-  //   if (audioStopped.current) return; // 🟢 Already stopped
-  //   audioStopped.current = true;      // 🟢 Mark as stopped
-
-  //   if (recordInterval.current) clearInterval(recordInterval.current);
-  //   console.log("🛑 Stopping audio recording...");
-  //   const path = await stopRecording();
-  //   console.log("📂 Audio file path:", path);
-  //   console.log("sos", sosId);
-
-
-  //   if (path && sosId) {
-  //     try {
-  //       console.log("⬆️ Uploading audio...");
-  //       await uploadAudio(path, sosId);
-  //       console.log("✅ Audio uploaded successfully");
-  //     } catch (err) {
-  //       console.error("❌ Audio upload failed:", err);
-  //     }
-  //   }
-  // };
-
-  // ---------------------------- Location ----------------------------
-
-  //----------------------------------------LOCATION---------------------------------------------------------
-
   const startLocationInterval = (id: string) => {
     console.log("📍 Starting location updates...");
     locationInterval.current = setInterval(async () => {
       const location = await getCurrentLocation();
       if (location && id) await updateSOS(id, location, "active");
-    }, 3 * 60 * 1000);
+    }, LOCATION_LIMIT_SEC * 1000);
   };
 
   const stopLocationInterval = () => {
@@ -302,13 +207,13 @@ export default function SOSButton() {
           setIsActive(true);
           await AsyncStorage.setItem("activeSOS", JSON.stringify({ id }));
 
-          // 🎙 AUDIO — run in background without blocking UI
+          // AUDIO — run in background without blocking UI
           setTimeout(() => startAudio(id), 10);
 
-          // 📍 LOCATION LOOP
+          // LOCATION LOOP
           startLocationInterval(id);
 
-          // 📸 CAMERA + AUTO-CAPTURE — run fully async with delay
+          // CAMERA + AUTO-CAPTURE — run fully async with delay
           setTimeout(async () => {
             console.log("📸 Init camera async...");
             await initCamera(cameraRef);
@@ -325,7 +230,8 @@ export default function SOSButton() {
 
 
         } else {
-          console.log("🛑 Deactivating SOS...");
+          
+          console.log("Deactivating SOS...");
 
           const location = await getCurrentLocation();
           if (location && sosId) updateSOS(sosId, location, "inactive");
@@ -348,7 +254,7 @@ export default function SOSButton() {
           Alert.alert("Success", "SOS Deactivated");
           // initVoiceRecognizer(handleSOS);
 
-          // ⏳ give native voice engine time to reset
+          // give native voice engine time to reset
           setTimeout(() => initVoiceRecognizer(handleSOS), 500);
 
         }
@@ -358,13 +264,13 @@ export default function SOSButton() {
       } finally {
         setIsProcessing(false);
       }
-    }, 0); // 🔥 Push heavy work off UI thread immediately
+    }, 0); // Push heavy work off UI thread immediately
   };
 
 
   // ---------------------------- Render ----------------------------
   return (
-    <Animated.View style={[styles.container, { transform: [{ scale: pulse }] }]}>
+    <View style={[styles.container, { transform: [{ scale: pulse }] }]}>
       {/* Hidden camera for auto capture */}
       {device && <Camera ref={cameraRef} style={{ width: 0, height: 0 }} isActive={true} photo={true} device={device} />}
 
@@ -377,7 +283,7 @@ export default function SOSButton() {
       </TouchableOpacity>
 
       {isActive && <Text style={{ marginTop: 10 }}>Recording: {recordTime}s</Text>}
-    </Animated.View>
+    </View>
   );
 }
 
