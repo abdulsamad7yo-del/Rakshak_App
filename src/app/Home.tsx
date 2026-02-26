@@ -1,22 +1,19 @@
 import React from "react";
-import { View, ScrollView, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Home1 from "../screens/Home1";
 
-export default function Home() {
+export default function Home(): React.JSX.Element {
   return (
-    <ScrollView style={styles.container}>
-      <SafeAreaView>
-        <View>
-          <Home1 />
-        </View>
-      </SafeAreaView>
-    </ScrollView>
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      <Home1 />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#F7F8FC",
   },
 });

@@ -270,7 +270,7 @@ export default function SOSButton() {
 
   // ---------------------------- Render ----------------------------
   return (
-    <View style={[styles.container, { transform: [{ scale: pulse }] }]}>
+    <View style={[styles.container]}>
       {/* Hidden camera for auto capture */}
       {device && <Camera ref={cameraRef} style={{ width: 0, height: 0 }} isActive={true} photo={true} device={device} />}
 
