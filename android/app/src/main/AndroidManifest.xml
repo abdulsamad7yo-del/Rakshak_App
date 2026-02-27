@@ -36,11 +36,11 @@
     android:roundIcon="@mipmap/ic_launcher_round"
     android:allowBackup="false"
     android:theme="@style/AppTheme"
-    android:usesCleartextTraffic="${usesCleartextTraffic}"
+    android:usesCleartextTraffic="true"
     android:supportsRtl="true">
     <service
       android:name="com.asterinet.react.bgactions.BackgroundActionsTask"
-      android:exported="false" />
+      android:exported="false"/>
     <meta-data
       android:name="com.google.android.geo.API_KEY"
       android:value="" />

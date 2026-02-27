@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { MapPinIcon } from "react-native-heroicons/solid";
 
 const tipsData = {
   Home: {
@@ -188,7 +189,7 @@ export default function SafetyTipsScreen() {
           activeOpacity={0.82}
         >
           <View style={styles.safeBtnIcon}>
-            <Text style={{ fontSize: 20 }}>📍</Text>
+            <Text style={{ fontSize: 20 }}><MapPinIcon/></Text>
           </View>
           <View style={styles.safeBtnText}>
             <Text style={styles.safeBtnTitle}>

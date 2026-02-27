@@ -14,6 +14,8 @@ import { initCamera, startAutoCapture, stopAutoCapture } from "../services/photo
 import { notifyTrustedContacts } from "../services/notificationService";
 import { initVoiceRecognizer, stopVoiceRecognizer } from "../services/voiceRecognizer";
 
+// import { AUDIO_LIMIT_SEC, LOCATION_LIMIT_SEC } from "../utils/constants";
+
 interface UserData { id: string; }
 
 const AUDIO_LIMIT_SEC = 120
@@ -21,7 +23,7 @@ const LOCATION_LIMIT_SEC = 60
 const PHOTO_CAPTURE_LIMIT_SEC = 120
 
 export default function SOSButton() {
-  const pulse = useRef(new Animated.Value(1)).current;
+  // const pulse = useRef(new Animated.Value(1)).current;
   const [isActive, setIsActive] = useState(false);
   const [sosId, setSosId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -35,6 +37,14 @@ export default function SOSButton() {
 
   const sosIdRef = useRef<string | null>(null); // Ref to always hold latest SOS ID
   const isActiveRef = useRef(false);
+
+  // Add this ref alongside your other refs
+  const userRef = useRef<UserData | null>(null);
+
+  // Keep it in sync — add this useEffect
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
 
 
   // ---------------------------- Initialize ----------------------------
@@ -73,7 +83,7 @@ export default function SOSButton() {
       }
     })();
 
-    
+
   }, []);
 
   useEffect(() => {
@@ -88,7 +98,7 @@ export default function SOSButton() {
 
   const fetchTrustedContactsAndMessage = async (userId: string) => {
     try {
-      const res = await fetch(`http://rakshak-gamma.vercel.app/api/user/${userId}/details`);
+      const res = await fetch(`https://rakshak-gamma.vercel.app/api/user/${userId}/details`);
       const data = await res.json();
       if (data.success && data.details) {
         return {
@@ -170,101 +180,178 @@ export default function SOSButton() {
     }
   };
 
-  // ---------------------------- Handle SOS ----------------------------
+  // // ---------------------------- Handle SOS ----------------------------
+  // const handleSOS = async () => {
+  //   if (isProcessing) return;
+
+  //   if (!user) {
+  //     console.log("❌ User not ready yet");
+  //     return;
+  //   }
+
+  //   setIsProcessing(true);
+
+  //   // Update UI instantly
+  //   setTimeout(async () => {
+  //     try {
+  //       if (!isActiveRef.current) {
+
+  //         console.log("🆘 Activating SOS...");
+
+  //         if (!(await requestLocationPermission())) {
+  //           Alert.alert("Error", "Location permission denied");
+  //           return;
+  //         }
+
+  //         // LOCATION (slow) — run but UI stays responsive
+  //         const location = await getCurrentLocation();
+  //         if (!location) return Alert.alert("Error", "Could not get location");
+
+  //         // API CALL (slow)
+  //         const id = await createSOS(user.id, location);
+  //         if (!id) return Alert.alert("Error", "Failed to create SOS");
+
+  //         stopVoiceRecognizer();
+
+  //         setSosId(id);
+  //         setIsActive(true);
+  //         await AsyncStorage.setItem("activeSOS", JSON.stringify({ id }));
+
+  //         // AUDIO — run in background without blocking UI
+  //         setTimeout(() => startAudio(id), 10);
+
+  //         // LOCATION LOOP
+  //         startLocationInterval(id);
+
+  //         // CAMERA + AUTO-CAPTURE — run fully async with delay
+  //         setTimeout(async () => {
+  //           console.log("📸 Init camera async...");
+  //           await initCamera(cameraRef);
+  //           startAutoCapture(id);
+  //         }, 500);
+
+  //         // Alert.alert("Success", "SOS Activated");
+
+
+  //         // console.log(id);
+
+  //         const { friends, userMessage } = await fetchTrustedContactsAndMessage(user.id);
+  //         await notifyTrustedContacts(friends, id as string, location, userMessage);
+
+
+  //       } else {
+
+  //         console.log("Deactivating SOS...");
+
+  //         const location = await getCurrentLocation();
+  //         if (location && sosId) updateSOS(sosId, location, "inactive");
+
+  //         // STOP audio async
+  //         setTimeout(() => stopAudio(sosId as string), 10);
+  //         // await stopAudio();
+
+
+  //         stopLocationInterval();
+
+  //         // STOP camera async
+  //         stopAutoCapture();
+
+  //         isActiveRef.current = false;
+  //         setIsActive(false);
+  //         setSosId(null);
+  //         await AsyncStorage.removeItem("activeSOS");
+
+  //         Alert.alert("Success", "SOS Deactivated");
+  //         // initVoiceRecognizer(handleSOS);
+
+  //         // give native voice engine time to reset
+  //         setTimeout(() => initVoiceRecognizer(handleSOS), 500);
+
+  //       }
+  //     } catch (err) {
+  //       console.error("❌ SOS error:", err);
+  //       Alert.alert("Error", "Something went wrong");
+  //     } finally {
+  //       setIsProcessing(false);
+  //     }
+  //   }, 0); // Push heavy work off UI thread immediately
+  // };
+
   const handleSOS = async () => {
     if (isProcessing) return;
 
-    if (!user) {
+    const currentUser = userRef.current; // ← always fresh, no stale closure
+    if (!currentUser) {
       console.log("❌ User not ready yet");
       return;
     }
 
     setIsProcessing(true);
 
-    // Update UI instantly
-    setTimeout(async () => {
-      try {
-        if (!isActiveRef.current) {
+    try {
+      if (!isActiveRef.current) {
+        console.log("🆘 Activating SOS...");
 
-          console.log("🆘 Activating SOS...");
-
-          if (!(await requestLocationPermission())) {
-            Alert.alert("Error", "Location permission denied");
-            return;
-          }
-
-          // LOCATION (slow) — run but UI stays responsive
-          const location = await getCurrentLocation();
-          if (!location) return Alert.alert("Error", "Could not get location");
-
-          // API CALL (slow)
-          const id = await createSOS(user.id, location);
-          if (!id) return Alert.alert("Error", "Failed to create SOS");
-
-          stopVoiceRecognizer();
-
-          setSosId(id);
-          setIsActive(true);
-          await AsyncStorage.setItem("activeSOS", JSON.stringify({ id }));
-
-          // AUDIO — run in background without blocking UI
-          setTimeout(() => startAudio(id), 10);
-
-          // LOCATION LOOP
-          startLocationInterval(id);
-
-          // CAMERA + AUTO-CAPTURE — run fully async with delay
-          setTimeout(async () => {
-            console.log("📸 Init camera async...");
-            await initCamera(cameraRef);
-            startAutoCapture(id);
-          }, 500);
-
-          // Alert.alert("Success", "SOS Activated");
-
-
-          // console.log(id);
-
-          const { friends, userMessage } = await fetchTrustedContactsAndMessage(user.id);
-          await notifyTrustedContacts(friends, id as string, location, userMessage);
-
-
-        } else {
-          
-          console.log("Deactivating SOS...");
-
-          const location = await getCurrentLocation();
-          if (location && sosId) updateSOS(sosId, location, "inactive");
-
-          // STOP audio async
-          setTimeout(() => stopAudio(sosId as string), 10);
-          // await stopAudio();
-
-
-          stopLocationInterval();
-
-          // STOP camera async
-          stopAutoCapture();
-
-          isActiveRef.current = false;
-          setIsActive(false);
-          setSosId(null);
-          await AsyncStorage.removeItem("activeSOS");
-
-          Alert.alert("Success", "SOS Deactivated");
-          // initVoiceRecognizer(handleSOS);
-
-          // give native voice engine time to reset
-          setTimeout(() => initVoiceRecognizer(handleSOS), 500);
-
+        if (!(await requestLocationPermission())) {
+          Alert.alert("Error", "Location permission denied");
+          return;
         }
-      } catch (err) {
-        console.error("❌ SOS error:", err);
-        Alert.alert("Error", "Something went wrong");
-      } finally {
-        setIsProcessing(false);
+
+        const location = await getCurrentLocation();
+        if (!location) {
+          Alert.alert("Error", "Could not get location");
+          return;
+        }
+
+        const id = await createSOS(currentUser.id, location); // ← currentUser
+        if (!id) {
+          Alert.alert("Error", "Failed to create SOS");
+          return;
+        }
+
+        stopVoiceRecognizer();
+        setSosId(id);
+        setIsActive(true);
+        isActiveRef.current = true;
+        await AsyncStorage.setItem("activeSOS", JSON.stringify({ id }));
+
+        setTimeout(() => startAudio(id), 10);
+        startLocationInterval(id);
+        setTimeout(async () => {
+          console.log("📸 Init camera async...");
+          await initCamera(cameraRef);
+          startAutoCapture(id);
+        }, 500);
+
+        fetchTrustedContactsAndMessage(currentUser.id).then(({ friends, userMessage }) => // ← currentUser
+          notifyTrustedContacts(friends, id, location, userMessage)
+        );
+
+      } else {
+        console.log("Deactivating SOS...");
+
+        const currentSosId = sosIdRef.current;
+        const location = await getCurrentLocation();
+        if (location && currentSosId) updateSOS(currentSosId, location, "inactive");
+
+        setTimeout(() => stopAudio(currentSosId as string), 10);
+        stopLocationInterval();
+        stopAutoCapture();
+
+        isActiveRef.current = false;
+        setIsActive(false);
+        setSosId(null);
+        await AsyncStorage.removeItem("activeSOS");
+
+        Alert.alert("Success", "SOS Deactivated");
+        setTimeout(() => initVoiceRecognizer(handleSOS), 500);
       }
-    }, 0); // Push heavy work off UI thread immediately
+    } catch (err) {
+      console.error("❌ SOS error:", err);
+      Alert.alert("Error", "Something went wrong");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
 
@@ -282,7 +369,7 @@ export default function SOSButton() {
         <Text style={styles.txt}>{isProcessing ? "..." : isActive ? "STOP" : "SOS"}</Text>
       </TouchableOpacity>
 
-      {isActive && <Text style={{ marginTop: 10 }}>Recording: {recordTime}s</Text>}
+      {isActive && <Text style={{ marginTop: 10 }}>Capturing Started</Text>}
     </View>
   );
 }

@@ -1,6 +1,8 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useRef } from 'react';
 import { Animated, Image, StatusBar, StyleSheet, Text, View } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const API_BASE = 'https://rakshak-gamma.vercel.app/api/user'; // ← adjust to your actual base
 
 // ─── Design Tokens ────────────────────────────────────────────────────────────
 const C = {
@@ -25,13 +27,13 @@ export default function SplashScreen({ navigation }: any) {
   const ringOpacity = useRef(new Animated.Value(0.6)).current;
 
   useEffect(() => {
-    // Logo pop-in
+    // ── Animations (unchanged) ──────────────────────────────────────────────
+
     Animated.parallel([
-      Animated.spring(logoScale,   { toValue: 1,   useNativeDriver: true, tension: 60, friction: 7 }),
-      Animated.timing(logoOpacity, { toValue: 1,   duration: 400, useNativeDriver: true }),
+      Animated.spring(logoScale,   { toValue: 1, useNativeDriver: true, tension: 60, friction: 7 }),
+      Animated.timing(logoOpacity, { toValue: 1, duration: 400, useNativeDriver: true }),
     ]).start();
 
-    // Text slide-up after logo
     setTimeout(() => {
       Animated.parallel([
         Animated.timing(textOpacity, { toValue: 1, duration: 350, useNativeDriver: true }),
@@ -39,12 +41,10 @@ export default function SplashScreen({ navigation }: any) {
       ]).start();
     }, 300);
 
-    // Tagline after title
     setTimeout(() => {
       Animated.timing(tagOpacity, { toValue: 1, duration: 400, useNativeDriver: true }).start();
     }, 600);
 
-    // Pulsing ring
     Animated.loop(
       Animated.sequence([
         Animated.parallel([
@@ -58,21 +58,77 @@ export default function SplashScreen({ navigation }: any) {
       ])
     ).start();
 
-    // Auth check
-    const checkLogin = async () => {
+    // ── Auth + fresh user detail fetch ─────────────────────────────────────
+    const checkLoginAndPrefetch = async () => {
       try {
-        const user = await AsyncStorage.getItem('loggedInUser');
-        const code = await AsyncStorage.getItem('codeWord');
-        console.log("User:", user);
-        console.log("Code Word", code);
-        navigation.replace(user ? 'MainApp' : 'Login');
+        const userData = await AsyncStorage.getItem('loggedInUser');
+        const code     = await AsyncStorage.getItem('codeWord');
+        console.log('User:', userData);
+        console.log('Code Word:', code);
+
+        if (!userData) {
+          navigation.replace('Login');
+          return;
+        }
+
+        const parsedUser = JSON.parse(userData);
+
+        // Fetch fresh user details
+        const res  = await fetch(`${API_BASE}/${parsedUser.id}/details`);
+        const data = await res.json();
+
+        if (data.success && data.details) {
+          // Merge fresh details back into stored user and persist
+          const updatedUser = { ...parsedUser, details: data.details };
+          await AsyncStorage.setItem('loggedInUser', JSON.stringify(updatedUser));
+
+          // Persist codeWord separately for quick access
+          if (data.details.codeWord) {
+            await AsyncStorage.setItem('codeWord', data.details.codeWord as string);
+            const code = await AsyncStorage.getItem('codeWord');
+            console.log('code word:', code);
+          }
+
+          // Optionally resolve human-readable location from permanentAddress
+          if (data.details.permanentAddress) {
+            try {
+              const { lat, lng } = data.details.permanentAddress;
+              const geo = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10&addressdetails=1`
+              );
+              const g = await geo.json();
+              if (g?.address) {
+                const { city, town, village, state, country } = g.address;
+                const place = [city || town || village, state, country]
+                  .filter(Boolean)
+                  .join(', ');
+                // Store resolved location so other screens can read it without re-fetching
+                await AsyncStorage.setItem('userLocationName', place || 'Unknown location');
+              }
+            } catch (geoErr) {
+              console.log('Reverse geocode failed (non-fatal):', geoErr);
+              // Non-fatal — app still navigates normally
+            }
+          }
+        } else {
+          console.log('Detail fetch returned no data — navigating with cached user');
+        }
+
+        navigation.replace('MainApp');
       } catch (error) {
-        console.error('Error reading user from AsyncStorage', error);
-        navigation.replace('Login');
+        console.error('Splash auth/fetch error:', error);
+        // Always navigate — never leave user stuck on splash
+        try {
+          const fallback = await AsyncStorage.getItem('loggedInUser');
+          navigation.replace(fallback ? 'MainApp' : 'Login');
+        } catch {
+          navigation.replace('Login');
+        }
       }
     };
 
-    setTimeout(checkLogin, 2000);
+    // Give animations a head-start, then kick off the fetch
+    setTimeout(checkLoginAndPrefetch, 1500);
   }, []);
 
   return (
@@ -85,8 +141,12 @@ export default function SplashScreen({ navigation }: any) {
 
       {/* Logo with pulse ring */}
       <View style={styles.logoWrapper}>
-        <Animated.View style={[styles.pulseRing, { transform: [{ scale: ringScale }], opacity: ringOpacity }]} />
-        <Animated.View style={[styles.logoBox, { opacity: logoOpacity, transform: [{ scale: logoScale }] }]}>
+        <Animated.View
+          style={[styles.pulseRing, { transform: [{ scale: ringScale }], opacity: ringOpacity }]}
+        />
+        <Animated.View
+          style={[styles.logoBox, { opacity: logoOpacity, transform: [{ scale: logoScale }] }]}
+        >
           <Image
             source={require('../assets/images/rakshak.png')}
             style={styles.logo}
@@ -96,7 +156,9 @@ export default function SplashScreen({ navigation }: any) {
       </View>
 
       {/* Brand name */}
-      <Animated.Text style={[styles.brandTitle, { opacity: textOpacity, transform: [{ translateY: textY }] }]}>
+      <Animated.Text
+        style={[styles.brandTitle, { opacity: textOpacity, transform: [{ translateY: textY }] }]}
+      >
         Rakshak
       </Animated.Text>
 
@@ -104,13 +166,6 @@ export default function SplashScreen({ navigation }: any) {
       <Animated.Text style={[styles.tagline, { opacity: tagOpacity }]}>
         Your Safety, Our Priority
       </Animated.Text>
-
-      {/* Bottom loader dots
-      <Animated.View style={[styles.dotsRow, { opacity: tagOpacity }]}>
-        {[0, 1, 2].map(i => (
-          <View key={i} style={[styles.dot, i === 1 && styles.dotAccent]} />
-        ))}
-      </Animated.View> */}
     </View>
   );
 }
@@ -121,7 +176,6 @@ const styles = StyleSheet.create({
     backgroundColor: C.bg,
   },
 
-  // Background decorative circles
   bgCircleLarge: {
     position: 'absolute', width: 360, height: 360, borderRadius: 180,
     backgroundColor: C.accentMuted, opacity: 0.18,
@@ -133,7 +187,6 @@ const styles = StyleSheet.create({
     bottom: -50, left: -60,
   },
 
-  // Logo
   logoWrapper: {
     justifyContent: 'center', alignItems: 'center',
     marginBottom: 28,
@@ -152,7 +205,6 @@ const styles = StyleSheet.create({
   },
   logo: { width: 72, height: 72 },
 
-  // Text
   brandTitle: {
     fontSize: 42, fontWeight: '800', color: C.accentText,
     letterSpacing: -1, marginBottom: 8,
@@ -161,18 +213,5 @@ const styles = StyleSheet.create({
     fontSize: 14, color: C.textMuted,
     fontStyle: 'italic', letterSpacing: 0.3,
     marginBottom: 48,
-  },
-
-  // Loader dots
-  dotsRow: {
-    position: 'absolute', bottom: 52,
-    flexDirection: 'row', gap: 8, alignItems: 'center',
-  },
-  dot: {
-    width: 7, height: 7, borderRadius: 4,
-    backgroundColor: C.accentMuted,
-  },
-  dotAccent: {
-    width: 20, backgroundColor: C.accentBright, borderRadius: 4,
   },
 });
