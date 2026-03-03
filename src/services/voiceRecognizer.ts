@@ -139,3 +139,22 @@ function attachListeners() {
     if (detecting) setTimeout(start, 500);
   });
 }
+
+
+// **`clean()`** → Formats text (lowercase, removes symbols, trims spaces) to make matching accurate.
+
+// **`requestMicPermission()`** → Requests `RECORD_AUDIO` permission on Android before starting voice recognition.
+
+// **`initVoiceRecognizer()`** → Initializes the system, loads saved code word from `AsyncStorage`, attaches listeners, and starts listening.
+
+// **`start()`** → Starts speech recognition if not already running and detection is enabled (auto-retries on failure).
+
+// **`attachListeners()`** → Adds event listeners for speech results, speech end, and speech errors.
+
+// **`onSpeechResults (inside attachListeners)`** → Extracts spoken text, cleans it, checks for code word, and triggers SOS callback if matched.
+
+// **`onSpeechEnd (inside attachListeners)`** → Restarts listening automatically if detection is still active.
+
+// **`onSpeechError (inside attachListeners)`** → Handles speech errors and retries listening after delay.
+
+// **`stopVoiceRecognizer()`** → Stops listening, removes all listeners, resets flags, and prevents memory leaks.

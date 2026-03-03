@@ -132,6 +132,13 @@ const sendDirectSMS = (phone: string, message: string): Promise<void> =>
     }
   });
 
+// * Defines an async function that sends an SMS using `react-native-get-sms-android` and returns a Promise.
+// * Dynamically loads the SMS module and handles different export formats.
+// * Checks if the `autoSend` method exists before attempting to send the message.
+// * Sends the SMS and logs either success or failure using callbacks.
+// * Always resolves the Promise (even on error) to prevent app crashes; works only on Android.
+
+
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 export const notifyTrustedContacts = async (
@@ -140,6 +147,7 @@ export const notifyTrustedContacts = async (
   location: LocationCoords,
   userMessage?: string
 ): Promise<void> => {
+
   const phones = friends.map((f) => f.phone).filter(Boolean);
 
   if (!phones.length) {
@@ -161,7 +169,9 @@ export const notifyTrustedContacts = async (
       return;
     }
 
+    // Send SMS to all contacts in parallel; errors are logged but do not block others
     await Promise.all(phones.map((phone) => sendDirectSMS(phone, message)));
+    
   } else {
     // iOS: silent SMS not allowed — foreground Linking only
     const { Linking } = await import("react-native");

@@ -20,7 +20,7 @@ interface UserData { id: string; }
 
 const AUDIO_LIMIT_SEC = 120
 const LOCATION_LIMIT_SEC = 60
-const PHOTO_CAPTURE_LIMIT_SEC = 120
+const PHOTO_CAPTURE_LIMIT_SEC = 120 * 60
 
 export default function SOSButton() {
   // const pulse = useRef(new Animated.Value(1)).current;
@@ -30,15 +30,20 @@ export default function SOSButton() {
   const [recordTime, setRecordTime] = useState<number>(0);
   const [user, setUser] = useState<UserData | null>(null);
 
-  const recordInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+  const device = useCameraDevice("back"); // back camera
+
+  // useRef
   const locationInterval = useRef<ReturnType<typeof setInterval> | null>(null);
-  const device = useCameraDevice("back");
+
+  const recordInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+
   const cameraRef = useRef<Camera>(null) as React.RefObject<Camera>;
 
   const sosIdRef = useRef<string | null>(null); // Ref to always hold latest SOS ID
+
   const isActiveRef = useRef(false);
 
-  // Add this ref alongside your other refs
+  // Kepp User Refrence
   const userRef = useRef<UserData | null>(null);
 
   // Keep it in sync — add this useEffect
@@ -100,6 +105,7 @@ export default function SOSButton() {
     try {
       const res = await fetch(`https://rakshak-gamma.vercel.app/api/user/${userId}/details`);
       const data = await res.json();
+
       if (data.success && data.details) {
         return {
           friends: data.details.trustedFriends || [],
@@ -135,6 +141,7 @@ export default function SOSButton() {
     // Auto-stop after 120 seconds
     setTimeout(() => {
       if (!audioStopped.current) {
+
         console.log("⏱ 120s reached, stopping audio automatically...");
         stopAudio(currentSOSId);
       }
@@ -143,20 +150,25 @@ export default function SOSButton() {
 
   const stopAudio = async (currentSOSId: string) => {
     if (audioStopped.current) return; // already stopped
+
     audioStopped.current = true;
 
     if (recordInterval.current) clearInterval(recordInterval.current);
 
     console.log("🛑 Stopping audio recording...");
     const path = await stopRecording();
+
+    // if audio path is there and sosId given then uplaod
     console.log("📂 Audio file path:", path);
     console.log("🆔 SOS ID for upload:", currentSOSId);
 
     if (path && currentSOSId) {
       try {
+
         console.log("⬆️ Uploading audio...");
         await uploadAudio(path, currentSOSId);
         console.log("✅ Audio uploaded successfully");
+
       } catch (err) {
         console.error("❌ Audio upload failed:", err);
       }
@@ -165,10 +177,14 @@ export default function SOSButton() {
 
 
   const startLocationInterval = (id: string) => {
+
     console.log("📍 Starting location updates...");
+
     locationInterval.current = setInterval(async () => {
       const location = await getCurrentLocation();
+
       if (location && id) await updateSOS(id, location, "active");
+
     }, LOCATION_LIMIT_SEC * 1000);
   };
 
@@ -180,107 +196,12 @@ export default function SOSButton() {
     }
   };
 
-  // // ---------------------------- Handle SOS ----------------------------
-  // const handleSOS = async () => {
-  //   if (isProcessing) return;
-
-  //   if (!user) {
-  //     console.log("❌ User not ready yet");
-  //     return;
-  //   }
-
-  //   setIsProcessing(true);
-
-  //   // Update UI instantly
-  //   setTimeout(async () => {
-  //     try {
-  //       if (!isActiveRef.current) {
-
-  //         console.log("🆘 Activating SOS...");
-
-  //         if (!(await requestLocationPermission())) {
-  //           Alert.alert("Error", "Location permission denied");
-  //           return;
-  //         }
-
-  //         // LOCATION (slow) — run but UI stays responsive
-  //         const location = await getCurrentLocation();
-  //         if (!location) return Alert.alert("Error", "Could not get location");
-
-  //         // API CALL (slow)
-  //         const id = await createSOS(user.id, location);
-  //         if (!id) return Alert.alert("Error", "Failed to create SOS");
-
-  //         stopVoiceRecognizer();
-
-  //         setSosId(id);
-  //         setIsActive(true);
-  //         await AsyncStorage.setItem("activeSOS", JSON.stringify({ id }));
-
-  //         // AUDIO — run in background without blocking UI
-  //         setTimeout(() => startAudio(id), 10);
-
-  //         // LOCATION LOOP
-  //         startLocationInterval(id);
-
-  //         // CAMERA + AUTO-CAPTURE — run fully async with delay
-  //         setTimeout(async () => {
-  //           console.log("📸 Init camera async...");
-  //           await initCamera(cameraRef);
-  //           startAutoCapture(id);
-  //         }, 500);
-
-  //         // Alert.alert("Success", "SOS Activated");
-
-
-  //         // console.log(id);
-
-  //         const { friends, userMessage } = await fetchTrustedContactsAndMessage(user.id);
-  //         await notifyTrustedContacts(friends, id as string, location, userMessage);
-
-
-  //       } else {
-
-  //         console.log("Deactivating SOS...");
-
-  //         const location = await getCurrentLocation();
-  //         if (location && sosId) updateSOS(sosId, location, "inactive");
-
-  //         // STOP audio async
-  //         setTimeout(() => stopAudio(sosId as string), 10);
-  //         // await stopAudio();
-
-
-  //         stopLocationInterval();
-
-  //         // STOP camera async
-  //         stopAutoCapture();
-
-  //         isActiveRef.current = false;
-  //         setIsActive(false);
-  //         setSosId(null);
-  //         await AsyncStorage.removeItem("activeSOS");
-
-  //         Alert.alert("Success", "SOS Deactivated");
-  //         // initVoiceRecognizer(handleSOS);
-
-  //         // give native voice engine time to reset
-  //         setTimeout(() => initVoiceRecognizer(handleSOS), 500);
-
-  //       }
-  //     } catch (err) {
-  //       console.error("❌ SOS error:", err);
-  //       Alert.alert("Error", "Something went wrong");
-  //     } finally {
-  //       setIsProcessing(false);
-  //     }
-  //   }, 0); // Push heavy work off UI thread immediately
-  // };
+  // ---------------------------- Handle SOS ----------------------------
 
   const handleSOS = async () => {
     if (isProcessing) return;
 
-    const currentUser = userRef.current; // ← always fresh, no stale closure
+    const currentUser = userRef.current; // always fresh, no stale closure
     if (!currentUser) {
       console.log("❌ User not ready yet");
       return;
@@ -303,7 +224,8 @@ export default function SOSButton() {
           return;
         }
 
-        const id = await createSOS(currentUser.id, location); // ← currentUser
+        const id = await createSOS(currentUser.id, location); // currentUser
+
         if (!id) {
           Alert.alert("Error", "Failed to create SOS");
           return;
@@ -315,15 +237,18 @@ export default function SOSButton() {
         isActiveRef.current = true;
         await AsyncStorage.setItem("activeSOS", JSON.stringify({ id }));
 
+        // delay 
         setTimeout(() => startAudio(id), 10);
+
         startLocationInterval(id);
+
         setTimeout(async () => {
           console.log("📸 Init camera async...");
           await initCamera(cameraRef);
-          startAutoCapture(id);
+          startAutoCapture(id);// default 2 min if want to change or give custom time to auto capture  startAutoCapture(id,const PHOTO_CAPTURE_LIMIT_SEC*1000);
         }, 500);
 
-        fetchTrustedContactsAndMessage(currentUser.id).then(({ friends, userMessage }) => // ← currentUser
+        fetchTrustedContactsAndMessage(currentUser.id).then(({ friends, userMessage }) => // currentUser
           notifyTrustedContacts(friends, id, location, userMessage)
         );
 
