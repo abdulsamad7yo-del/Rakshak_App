@@ -18,5 +18,12 @@ buildscript {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
     }
 }
-
+allprojects {
+    configurations.all {
+        resolutionStrategy {
+            force "com.squareup.okhttp3:okhttp:4.9.3"
+            force "com.squareup.okhttp3:okhttp-urlconnection:4.9.3"
+        }
+    }
+}
 apply plugin: "com.facebook.react.rootproject"

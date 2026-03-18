@@ -231,13 +231,7 @@ export default function SafetyTipsScreen() {
                         <Text style={[styles.cardTitle, { color: catData.color.text }]}>
                           {item[language].title}
                         </Text>
-                        {/* <TouchableOpacity
-                          onPress={() => toggleFavorite(item.id)}
-                          style={styles.favBtn}
-                          activeOpacity={0.7}
-                        >
-                          <Text style={{ fontSize: 18 }}>{isFav ? "❤️" : "🤍"}</Text>
-                        </TouchableOpacity> */}
+                       
                       </View>
                       <Text style={styles.cardDesc}>{item[language].description}</Text>
                     </View>

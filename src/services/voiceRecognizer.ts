@@ -1,9 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import {
-  startListening,
-  stopListening,
-  addEventListener,
-} from "@ascendtis/react-native-voice-to-text";
+import { startListening, stopListening, addEventListener } from "@ascendtis/react-native-voice-to-text";
 import { PermissionsAndroid, Platform } from "react-native";
 
 let codeWord: string | null = null;
@@ -18,12 +14,31 @@ let errorSub: any = null;
 
 // ------------------------------------------------
 
+// const clean = (s: string) =>
+//   s
+//     .toLowerCase()
+//     .replace(/[^\w\s]/g, "")
+//     .replace(/\s+/g, " ")
+//     .trim();
+
 const clean = (s: string) =>
   s
     .toLowerCase()
     .replace(/[^\w\s]/g, "")
     .replace(/\s+/g, " ")
-    .trim();
+    .trim()
+    .replace(/ee/g, "i")
+    .replace(/aa/g, "a")
+    .replace(/oo/g, "u")
+    .replace(/ou/g, "u")
+    .replace(/kh/g, "k")
+    .replace(/gh/g, "g")
+    .replace(/bh/g, "b")
+    .replace(/ph/g, "f")
+    .replace(/sh/g, "s")
+    .replace(/ch/g, "c")
+    .replace(/th/g, "t")
+    .replace(/dh/g, "d")
 
 // ------------------------------------------------
 
@@ -55,10 +70,11 @@ export async function initVoiceRecognizer(onSOS: () => void) {
     console.log("⚠️ No code word");
     return;
   }
+  console.log(saved);
 
   codeWord = clean(saved);
 
-  console.log("🎧 CodeWord:", codeWord);
+  console.log("🎧 Cleaned CodeWord:", codeWord);
 
   attachListeners();
 
@@ -90,7 +106,7 @@ export async function stopVoiceRecognizer() {
 
   try {
     await stopListening();
-  } catch {}
+  } catch { }
 
   resultSub?.remove();
   endSub?.remove();
@@ -119,7 +135,42 @@ function attachListeners() {
 
     if (!codeWord || !detecting) return;
 
-    if (heard.includes(codeWord)) {
+    const heardWords = heard.split(" ").filter(Boolean);
+    const codeWords = codeWord.split(" ").filter(Boolean);
+
+    function isSimilar(a: string, b: string) {
+      if (!a || !b) return false;
+      if (a === b) return true;
+
+      if (Math.abs(a.length - b.length) > 2) return false;
+
+      let i = 0, j = 0, diff = 0;
+
+      while (i < a.length && j < b.length) {
+        if (a[i] === b[j]) {
+          i++;
+          j++;
+        } else {
+          diff++;
+          if (diff > 2) return false;
+
+          if (a.length > b.length) i++;
+          else if (b.length > a.length) j++;
+          else {
+            i++;
+            j++;
+          }
+        }
+      }
+
+      return true;
+    }
+
+    const matched = codeWords.every(cw =>
+      heardWords.some(hw => isSimilar(hw, cw))
+    );
+
+    if (matched && detecting) {
       console.log("🚨 CODE WORD DETECTED");
 
       detecting = false;

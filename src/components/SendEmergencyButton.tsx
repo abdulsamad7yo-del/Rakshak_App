@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Alert, Linking, TouchableOpacity, Text, StyleSheet, View } from "react-native";
+import { Alert, Linking, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Geolocation from "react-native-geolocation-service";
 
 export default function SendEmergencyButton() {

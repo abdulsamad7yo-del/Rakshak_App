@@ -1,7 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useRef } from 'react';
-import { Animated, Image, StatusBar, StyleSheet, Text, View } from 'react-native';
-
+import { Animated, Image, StatusBar, StyleSheet, View } from 'react-native';
+import { Alert } from 'react-native'
+import { User, UserDetails } from './Profilescreen';
 const API_BASE = 'https://rakshak-gamma.vercel.app/api/user'; // ← adjust to your actual base
 
 // ─── Design Tokens ────────────────────────────────────────────────────────────
@@ -18,26 +19,26 @@ const C = {
 };
 
 export default function SplashScreen({ navigation }: any) {
-  const logoScale   = useRef(new Animated.Value(0.7)).current;
+  const logoScale = useRef(new Animated.Value(0.7)).current;
   const logoOpacity = useRef(new Animated.Value(0)).current;
   const textOpacity = useRef(new Animated.Value(0)).current;
-  const textY       = useRef(new Animated.Value(16)).current;
-  const tagOpacity  = useRef(new Animated.Value(0)).current;
-  const ringScale   = useRef(new Animated.Value(0.6)).current;
+  const textY = useRef(new Animated.Value(16)).current;
+  const tagOpacity = useRef(new Animated.Value(0)).current;
+  const ringScale = useRef(new Animated.Value(0.6)).current;
   const ringOpacity = useRef(new Animated.Value(0.6)).current;
 
   useEffect(() => {
     // ── Animations (unchanged) ──────────────────────────────────────────────
 
     Animated.parallel([
-      Animated.spring(logoScale,   { toValue: 1, useNativeDriver: true, tension: 60, friction: 7 }),
+      Animated.spring(logoScale, { toValue: 1, useNativeDriver: true, tension: 60, friction: 7 }),
       Animated.timing(logoOpacity, { toValue: 1, duration: 400, useNativeDriver: true }),
     ]).start();
 
     setTimeout(() => {
       Animated.parallel([
         Animated.timing(textOpacity, { toValue: 1, duration: 350, useNativeDriver: true }),
-        Animated.timing(textY,       { toValue: 0, duration: 350, useNativeDriver: true }),
+        Animated.timing(textY, { toValue: 0, duration: 350, useNativeDriver: true }),
       ]).start();
     }, 300);
 
@@ -48,51 +49,52 @@ export default function SplashScreen({ navigation }: any) {
     Animated.loop(
       Animated.sequence([
         Animated.parallel([
-          Animated.timing(ringScale,   { toValue: 1.5, duration: 1000, useNativeDriver: true }),
-          Animated.timing(ringOpacity, { toValue: 0,   duration: 1000, useNativeDriver: true }),
+          Animated.timing(ringScale, { toValue: 1.5, duration: 1000, useNativeDriver: true }),
+          Animated.timing(ringOpacity, { toValue: 0, duration: 1000, useNativeDriver: true }),
         ]),
         Animated.parallel([
-          Animated.timing(ringScale,   { toValue: 0.6, duration: 0, useNativeDriver: true }),
+          Animated.timing(ringScale, { toValue: 0.6, duration: 0, useNativeDriver: true }),
           Animated.timing(ringOpacity, { toValue: 0.5, duration: 0, useNativeDriver: true }),
         ]),
       ])
     ).start();
 
     // ── Auth + fresh user detail fetch ─────────────────────────────────────
+    ; // Add Alert to imports
+
     const checkLoginAndPrefetch = async () => {
       try {
         const userData = await AsyncStorage.getItem('loggedInUser');
-        const code     = await AsyncStorage.getItem('codeWord');
-        console.log('User:', userData);
-        console.log('Code Word:', code);
 
         if (!userData) {
           navigation.replace('Login');
           return;
         }
 
-        const parsedUser = JSON.parse(userData);
+        const parsedUser: User = JSON.parse(userData);
 
         // Fetch fresh user details
-        const res  = await fetch(`${API_BASE}/${parsedUser.id}/details`);
+        const res = await fetch(`${API_BASE}/${parsedUser.id}/details`);
         const data = await res.json();
 
         if (data.success && data.details) {
+          const freshDetails: UserDetails = data.details;
+
           // Merge fresh details back into stored user and persist
-          const updatedUser = { ...parsedUser, details: data.details };
+          const updatedUser = { ...parsedUser, details: freshDetails };
           await AsyncStorage.setItem('loggedInUser', JSON.stringify(updatedUser));
 
-          // Persist codeWord separately for quick access
-          if (data.details.codeWord) {
-            await AsyncStorage.setItem('codeWord', data.details.codeWord as string);
-            const code = await AsyncStorage.getItem('codeWord');
-            console.log('code word:', code);
+          // Use freshDetails directly (not the state variable)
+          if (freshDetails.codeWord) {
+            await AsyncStorage.setItem('codeWord', freshDetails.codeWord);
+            // const code = await AsyncStorage.getItem('codeWord');
+            console.log('Code word saved:', freshDetails.codeWord);
           }
 
-          // Optionally resolve human-readable location from permanentAddress
-          if (data.details.permanentAddress) {
+          // Resolve human-readable location from permanentAddress
+          if (freshDetails.permanentAddress) {
             try {
-              const { lat, lng } = data.details.permanentAddress;
+              const { lat, lng } = freshDetails.permanentAddress;
               const geo = await fetch(
                 `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10&addressdetails=1`
               );
@@ -102,12 +104,10 @@ export default function SplashScreen({ navigation }: any) {
                 const place = [city || town || village, state, country]
                   .filter(Boolean)
                   .join(', ');
-                // Store resolved location so other screens can read it without re-fetching
                 await AsyncStorage.setItem('userLocationName', place || 'Unknown location');
               }
             } catch (geoErr) {
               console.log('Reverse geocode failed (non-fatal):', geoErr);
-              // Non-fatal — app still navigates normally
             }
           }
         } else {
@@ -117,7 +117,6 @@ export default function SplashScreen({ navigation }: any) {
         navigation.replace('MainApp');
       } catch (error) {
         console.error('Splash auth/fetch error:', error);
-        // Always navigate — never leave user stuck on splash
         try {
           const fallback = await AsyncStorage.getItem('loggedInUser');
           navigation.replace(fallback ? 'MainApp' : 'Login');

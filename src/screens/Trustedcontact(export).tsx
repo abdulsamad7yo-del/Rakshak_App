@@ -1,28 +1,26 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
   FlatList,
   Modal,
-  ActivityIndicator,
-  Platform,
   PermissionsAndroid,
-  Alert,
+  Platform,
   StatusBar,
-  Animated,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 import Contacts from "react-native-contacts";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
-  PencilSquareIcon,
-  PlusCircleIcon,
-  UserPlusIcon,
-  XMarkIcon,
-  ShieldCheckIcon,
   MagnifyingGlassIcon,
+  PlusCircleIcon,
+  ShieldCheckIcon,
+  UserPlusIcon,
+  XMarkIcon
 } from "react-native-heroicons/solid";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -193,37 +191,7 @@ export default function TrustedContactsScreen() {
     setShowDeviceModal(false);
   };
 
-  // // ── Edit contact ──────────────────────────────────────────────────────────────
-  // const startEdit = (contact: Contact) => {
-  //   setEditingContact(contact);
-  //   setEditName(contact.name);
-  //   setEditPhone(contact.phone);
-  //   setEditModalVisible(true);
-  // };
 
-  // const saveEdit = async () => {
-  //   if (!editingContact || !userId) return;
-  //   if (!isValidPhone(editPhone))
-  //     return Alert.alert("Invalid Phone", "Phone number must be exactly 10 digits.");
-  //   try {
-  //     const res = await fetch(
-  //       `${API_BASE}/${userId}/trusted-friends/${editingContact.id}`,
-  //       {
-  //         method: "PUT",
-  //         headers: { "Content-Type": "application/json" },
-  //         body: JSON.stringify({ name: editName, phone: editPhone }),
-  //       }
-  //     );
-  //     const data = await res.json();
-  //     if (data.success) {
-  //       setEditModalVisible(false);
-  //       setEditingContact(null);
-  //       fetchContacts();
-  //     }
-  //   } catch {
-  //     Alert.alert("Error", "Unable to update contact.");
-  //   }
-  // };
 
   // ── Delete contact ────────────────────────────────────────────────────────────
   const deleteContact = (id: string) => {
@@ -341,6 +309,7 @@ export default function TrustedContactsScreen() {
         <FlatList
           data={contacts}
           keyExtractor={(i) => i.id}
+          scrollEnabled={false} 
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           renderItem={({ item, index }) => (
@@ -358,13 +327,7 @@ export default function TrustedContactsScreen() {
 
               {/* Actions */}
               <View style={styles.contactActions}>
-                {/* <TouchableOpacity
-                  style={styles.iconBtn}
-                  onPress={() => startEdit(item)}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <PencilSquareIcon size={20} color="#1565C0" />
-                </TouchableOpacity> */}
+
                 <TouchableOpacity
                   style={[styles.iconBtn, styles.iconBtnDanger]}
                   onPress={() => deleteContact(item.id)}
@@ -439,52 +402,6 @@ export default function TrustedContactsScreen() {
           </View>
         </View>
       </Modal>
-
-      {/* ── Edit Modal ──
-      <Modal visible={editModalVisible} transparent animationType="fade">
-        <View style={styles.overlay}>
-          <View style={styles.editCard}>
-            <Text style={styles.editTitle}>Edit Contact</Text>
-
-            <Text style={styles.editLabel}>Name</Text>
-            <TextInput
-              style={styles.inputField}
-              value={editName}
-              onChangeText={setEditName}
-              autoCapitalize="words"
-              placeholderTextColor="#9E9E9E"
-            />
-
-            <Text style={styles.editLabel}>Phone</Text>
-            <TextInput
-              style={styles.inputField}
-              keyboardType="phone-pad"
-              maxLength={10}
-              value={editPhone}
-              onChangeText={setEditPhone}
-              placeholderTextColor="#9E9E9E"
-            />
-
-            <View style={styles.editActions}>
-              <TouchableOpacity
-                style={[styles.actionBtn, styles.actionBtnPrimary, { flex: 1 }]}
-                onPress={saveEdit}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.actionBtnText}>Save Changes</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.actionBtn, styles.actionBtnGhost, { flex: 1 }]}
-                onPress={() => setEditModalVisible(false)}
-                activeOpacity={0.8}
-              >
-                <Text style={[styles.actionBtnText, styles.actionBtnTextGhost]}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal> */}
     </View>
   );
 }
@@ -494,7 +411,6 @@ export default function TrustedContactsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FAFAFA",
   },
 
   // Loading
@@ -502,7 +418,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#FAFAFA",
   },
   loadingCard: {
     backgroundColor: "#fff",
@@ -685,7 +600,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 40,
-    marginTop: -40,
+
   },
   emptyIcon: {
     fontSize: 52,

@@ -1,24 +1,26 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
   ActivityIndicator,
-  TextInput,
-  TouchableOpacity,
   Alert,
   ScrollView,
   StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from "@react-navigation/native";
 
-import SendEmergencyButton from "../components/SendEmergencyButton";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ArrowRightOnRectangleIcon, PencilIcon, XMarkIcon } from "react-native-heroicons/solid";
+import SendEmergencyButton from "../components/SendEmergencyButton";
+import { initVoiceRecognizer, stopVoiceRecognizer } from "../services/voiceRecognizer";
+import { sosHandlerRef } from "../services/sosHandler";
 
 // ================= Types ==================
-type User = {
+export type User = {
   id: string;
   email: string;
   phoneNumber: string;
@@ -29,7 +31,7 @@ type PermanentAddress = {
   lng: number;
 };
 
-type UserDetails = {
+export type UserDetails = {
   permanentAddress?: PermanentAddress | null;
   codeWord?: string | null;
   message?: string | null;
@@ -144,21 +146,72 @@ export default function ProfileScreen() {
   }, []);
 
   // ================= Save Updated Details ==================
+  // const handleSave = async () => {
+  //   if (!user || !details) return;
+  //   try {
+  //     setLoading(true);
+  //     const res = await fetch(`${API_BASE}/${user.id}/details`, {
+  //       method: "PUT",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify(details),
+  //     });
+  //     const data = await res.json();
+  //     if (data.success) {
+  //       Alert.alert("Success", "Details updated successfully!");
+  //       await AsyncStorage.setItem("codeWord", details.codeWord as string);
+  //       const code = await AsyncStorage.getItem("codeWord");
+  //       console.log("code word:", code);
+  //       setEditing(false);
+  //     } else {
+  //       Alert.alert("Error", data.message || "Failed to update details");
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //     Alert.alert("Error", "Something went wrong while updating");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const handleSave = async () => {
     if (!user || !details) return;
+
     try {
       setLoading(true);
+
       const res = await fetch(`${API_BASE}/${user.id}/details`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(details),
       });
+
       const data = await res.json();
+
       if (data.success) {
         Alert.alert("Success", "Details updated successfully!");
+
+        // ✅ Save new code word
         await AsyncStorage.setItem("codeWord", details.codeWord as string);
-        const code = await AsyncStorage.getItem("codeWord");
-        console.log("code word:", code);
+
+        console.log("🔑 New Code Word:", details.codeWord);
+
+        // Restart voice recognizer ONLY if no active SOS
+        const activeSOS = await AsyncStorage.getItem("activeSOS");
+
+        if (!activeSOS) {
+          console.log("🔄 Restarting voice recognizer with new code word...");
+
+          await stopVoiceRecognizer();
+
+          setTimeout(() => {
+            initVoiceRecognizer(() => {
+              sosHandlerRef.current?.();
+            });
+          }, 300); // small delay for stability
+        } else {
+          console.log(" Skipped voice restart (SOS active)");
+        }
+
         setEditing(false);
       } else {
         Alert.alert("Error", data.message || "Failed to update details");
@@ -215,15 +268,6 @@ export default function ProfileScreen() {
         </View>
         <View style={styles.headerActions}>
           <TouchableOpacity
-            style={[styles.headerBtn, editing && styles.headerBtnActive]}
-            onPress={() => setEditing(!editing)}
-            activeOpacity={0.75}
-          >
-            {editing
-              ? <XMarkIcon size={18} color={C.accentBright} />
-              : <PencilIcon size={18} color={C.textSecondary} />}
-          </TouchableOpacity>
-          <TouchableOpacity
             style={styles.headerBtn}
             onPress={handleLogout}
             activeOpacity={0.75}
@@ -268,11 +312,28 @@ export default function ProfileScreen() {
 
           {/* Code Word */}
           <View style={styles.fieldBlock}>
+
+            <TouchableOpacity
+              style={[styles.editBtn, editing && styles.headerBtnActive]}
+              onPress={() => setEditing(!editing)}
+              activeOpacity={0.75}
+            >
+              {editing
+                ? <XMarkIcon size={18} color={C.accentBright} />
+                : <PencilIcon size={18} color={C.textSecondary} />}
+            </TouchableOpacity>
+
             <View style={styles.fieldHeader}>
               <Text style={styles.fieldIconText}>🔑</Text>
               <Text style={styles.fieldLabel}>Code Word</Text>
-              {editing && <View style={styles.editingPill}><Text style={styles.editingPillText}>Editing</Text></View>}
+
+              {editing && (
+                <View style={styles.editingPill}>
+                  <Text style={styles.editingPillText}>Editing</Text>
+                </View>
+              )}
             </View>
+
             <TextInput
               style={[styles.input, !editing && styles.inputReadOnly]}
               editable={editing}
@@ -281,6 +342,7 @@ export default function ProfileScreen() {
               value={details?.codeWord ?? ""}
               onChangeText={(text) => setDetails({ ...details, codeWord: text })}
             />
+
           </View>
 
           <View style={styles.cardDivider} />
@@ -333,10 +395,10 @@ export default function ProfileScreen() {
 
 // ================= Styles ==================
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.bg },
+  container: { flex: 1, height: "100%" },
   center: {
     flex: 1, justifyContent: "center", alignItems: "center",
-    backgroundColor: C.bg, gap: 12,
+    gap: 12,
   },
 
   // Loading / error
@@ -347,7 +409,14 @@ const styles = StyleSheet.create({
   },
   loadingText: { fontSize: 14, color: C.textMuted, marginTop: 4 },
   errorText: { fontSize: 16, color: C.accentBright, fontWeight: "600" },
-
+  editBtn: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    padding: 6,
+    borderRadius: 20,
+    zIndex: 10
+  },
   // Header
   header: {
     backgroundColor: C.surface,
@@ -436,7 +505,7 @@ const styles = StyleSheet.create({
   fieldLabel: { fontSize: 13, fontWeight: "700", color: C.textSecondary, flex: 1 },
   editingPill: {
     backgroundColor: C.accentSoft, borderRadius: 8,
-    paddingHorizontal: 8, paddingVertical: 2,
+    marginRight: 40, paddingVertical: 2, paddingHorizontal: 8,
     borderWidth: 1, borderColor: C.accentMuted,
   },
   editingPillText: { fontSize: 10, fontWeight: "700", color: C.accentText, letterSpacing: 0.5 },

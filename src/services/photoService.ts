@@ -47,7 +47,76 @@ function safeJsonParse(text: string) {
 /* -------------------------------------------------------------------------- */
 /*                              TAKE + UPLOAD PHOTO                            */
 /* -------------------------------------------------------------------------- */
-export async function takePhotoAndUpload(sosAlertId: string) {
+// export async function takePhotoAndUpload(sosAlertId: string) {
+//   if (!cameraRef?.current) {
+//     console.log("⚠️ No camera reference found!");
+//     return;
+//   }
+
+//   try {
+//     console.log("📸 Taking photo...");
+//     const photo = await cameraRef.current.takePhoto({ flash: "off" });
+
+//     const filename = `photo_${Date.now()}.jpg`;
+//     const dest = `${PHOTO_DIR}/${filename}`;
+
+//     // Save the photo to a local file first 
+//     // (VisionCamera returns a temp path that may not be accessible to fetch)
+//     await RNFS.copyFile(photo.path, dest);
+
+//     // what stat do : it gives us the file size, which we can use to check if the photo is too large before uploading.
+//     // This is important because we have a MAX_TOTAL_SIZE limit of 10 MB for uploads. 
+//     // If the photo exceeds this limit, we can skip the upload and avoid unnecessary network usage and potential errors from the backend.
+//     const stats = await RNFS.stat(dest);
+//     console.log(`📁 Saved locally: ${dest} (${stats.size} bytes)`);
+
+//     if (stats.size > MAX_TOTAL_SIZE) {
+//       console.log("❌ Photo too large, skipping upload.");
+//       return;
+//     }
+
+//     console.log("⬆ Uploading...");
+
+//     // We create a FormData object to send the photo file and associated SOS alert ID to the backend API.
+//     const form = new FormData();
+
+//     // Append the SOS alert ID and the photo file to the form data for upload
+//     form.append("sosAlertId", sosAlertId);
+//     form.append("files", {
+//       uri: "file://" + dest,
+//       name: filename,
+//       type: "image/jpeg",
+//     });
+//     // why we use "file://" prefix for the URI when appending the photo to the FormData is because React Native's fetch API expects file URIs to be in this format when uploading files.
+//     // The "file://" prefix indicates that the URI is a local file path, which allows the fetch API to correctly read and upload the file from the device's storage.
+    
+    
+//     // why we have not done JSON.stringify(form) is because FormData is a special type of object that is used to construct key/value pairs for form submissions, especially when uploading files.
+//     // When sending FormData with fetch, we should pass the FormData object directly as the body of the request without stringifying it. 
+//     // The fetch API will automatically set the correct Content-Type header (including the multipart boundary) and format the request body appropriately for file uploads.
+//     // backend will get data using request.formData() and it will be able to access the uploaded file and sosAlertId from the form data without any issues.
+//     const response = await fetch(API_URL, { method: "POST", body: form });
+
+//     const raw = await response.text();
+//     console.log("🔵 Raw Upload Response:", raw);
+
+//     const json = safeJsonParse(raw);
+
+//     if (!json) {
+//       console.log("❌ Backend returned non-JSON text. Probably Cloudinary DOWN.");
+//       return;
+//     }
+
+//     console.log("✅ Parsed Upload JSON:", json);
+//   } catch (err: any) {
+//     console.log("❌ Photo capture/upload error:", err);
+//   }
+// }
+export async function takePhotoAndUpload(
+  sosAlertId: string,
+  maxRetries = 3,
+  retryDelay = 2000 // 2 seconds
+) {
   if (!cameraRef?.current) {
     console.log("⚠️ No camera reference found!");
     return;
@@ -60,13 +129,9 @@ export async function takePhotoAndUpload(sosAlertId: string) {
     const filename = `photo_${Date.now()}.jpg`;
     const dest = `${PHOTO_DIR}/${filename}`;
 
-    // Save the photo to a local file first 
-    // (VisionCamera returns a temp path that may not be accessible to fetch)
+    // Save to local file
     await RNFS.copyFile(photo.path, dest);
 
-    // what stat do : it gives us the file size, which we can use to check if the photo is too large before uploading.
-    // This is important because we have a MAX_TOTAL_SIZE limit of 10 MB for uploads. 
-    // If the photo exceeds this limit, we can skip the upload and avoid unnecessary network usage and potential errors from the backend.
     const stats = await RNFS.stat(dest);
     console.log(`📁 Saved locally: ${dest} (${stats.size} bytes)`);
 
@@ -75,41 +140,43 @@ export async function takePhotoAndUpload(sosAlertId: string) {
       return;
     }
 
-    console.log("⬆ Uploading...");
-
-    // We create a FormData object to send the photo file and associated SOS alert ID to the backend API.
     const form = new FormData();
-
-    // Append the SOS alert ID and the photo file to the form data for upload
     form.append("sosAlertId", sosAlertId);
     form.append("files", {
       uri: "file://" + dest,
       name: filename,
       type: "image/jpeg",
     });
-    // why we use "file://" prefix for the URI when appending the photo to the FormData is because React Native's fetch API expects file URIs to be in this format when uploading files.
-    // The "file://" prefix indicates that the URI is a local file path, which allows the fetch API to correctly read and upload the file from the device's storage.
-    
-    
-    // why we have not done JSON.stringify(form) is because FormData is a special type of object that is used to construct key/value pairs for form submissions, especially when uploading files.
-    // When sending FormData with fetch, we should pass the FormData object directly as the body of the request without stringifying it. 
-    // The fetch API will automatically set the correct Content-Type header (including the multipart boundary) and format the request body appropriately for file uploads.
-    // backend will get data using request.formData() and it will be able to access the uploaded file and sosAlertId from the form data without any issues.
-    const response = await fetch(API_URL, { method: "POST", body: form });
 
-    const raw = await response.text();
-    console.log("🔵 Raw Upload Response:", raw);
+    let attempt = 0;
+    let success = false;
 
-    const json = safeJsonParse(raw);
+    while (attempt < maxRetries && !success) {
+      try {
+        console.log(`⬆ Uploading... Attempt ${attempt + 1}`);
+        const response = await fetch(API_URL, { method: "POST", body: form });
+        const raw = await response.text();
+        const json = safeJsonParse(raw);
 
-    if (!json) {
-      console.log("❌ Backend returned non-JSON text. Probably Cloudinary DOWN.");
-      return;
+        if (!json) {
+          throw new Error("Backend returned non-JSON response");
+        }
+
+        console.log("✅ Upload successful:", json);
+        success = true;
+      } catch (err) {
+        attempt++;
+        console.log(`❌ Upload attempt ${attempt} failed:`, err);
+        if (attempt < maxRetries) {
+          console.log(`⏱ Retrying in ${retryDelay}ms...`);
+          await new Promise((res:any) => setTimeout(res, retryDelay));
+        } else {
+          console.log("❌ All upload attempts failed.");
+        }
+      }
     }
-
-    console.log("✅ Parsed Upload JSON:", json);
   } catch (err: any) {
-    console.log("❌ Photo capture/upload error:", err);
+    console.log("❌ Photo capture error:", err);
   }
 }
 

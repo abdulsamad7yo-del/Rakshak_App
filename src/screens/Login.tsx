@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useState } from "react";
 import {
   Alert,
@@ -11,7 +12,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { EyeIcon, EyeSlashIcon } from "react-native-heroicons/solid";
 
 const API_URL = "https://rakshak-gamma.vercel.app/api/auth/signin";

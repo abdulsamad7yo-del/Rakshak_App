@@ -5,12 +5,12 @@ import Profilescreen from "../screens/Profilescreen";
 
 export default function Profile() {
   return (
-    <SafeAreaView>
+    
       <ScrollView>
         <View>
           <Profilescreen />
         </View>
       </ScrollView>
-    </SafeAreaView>
+   
   );
 }

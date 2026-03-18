@@ -1,18 +1,18 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
-  View,
-  Text,
   ActivityIndicator,
   Alert,
-  Platform,
-  PermissionsAndroid,
-  StyleSheet,
   Dimensions,
-  TouchableOpacity,
+  PermissionsAndroid,
+  Platform,
   StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import MapView, { Marker, PROVIDER_GOOGLE, Circle } from "react-native-maps";
 import Geolocation from "react-native-geolocation-service";
+import MapView, { Circle, Marker, PROVIDER_GOOGLE } from "react-native-maps";
 
 export default function LocationMap() {
   const [hasLocationPermission, setHasLocationPermission] = useState(false);

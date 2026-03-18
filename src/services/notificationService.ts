@@ -1,64 +1,5 @@
-// import { Alert, Linking } from "react-native";
-// import { LocationCoords } from "./locationService";
-
-// export const notifyTrustedContacts = async (
-//   friends: { phone: string }[],
-//   sosId: string,
-//   location: LocationCoords,
-//   userMessage?: string
-// ) => {
-//   const phones = friends.map((x) => x.phone).filter(Boolean);
-//   if (!phones.length) {
-//     console.warn("No trusted contacts to notify.");
-//     return;
-//   }
-
-//   const mapUrl = `https://maps.google.com/?q=${location.lat},${location.lng}`;
-//   const sosUrl = `http://rakshak-gamma.vercel.app/sos/${sosId}`;
-
-//   const message = `
-// 🚨 SOS ALERT 🚨
-
-// ${userMessage ? `Message: ${userMessage}\n\n` : "I am in danger. Please help immediately.\n\n"}
-
-// 📍 Location:
-// ${mapUrl}
-
-// 🔗 SOS Details:
-// ${sosUrl}
-//   `.trim();
-
-//   // ✅ Use requestIdleCallback or fallback to setTimeout
-//   const runAlert = () => {
-//     Alert.alert(
-//       "Send SOS",
-//       "Send your SOS message:",
-//       [
-//         {
-//           text: "SMS",
-//           onPress: () => {
-//             const smsUrl = `sms:${phones.join(",")}?body=${encodeURIComponent(message)}`;
-//             Linking.openURL(smsUrl).catch((err) => console.warn("SMS failed:", err));
-//           },
-//         },
-//       ],
-//       { cancelable: true }
-//     );
-//   };
-
-//   if (typeof (globalThis as any).requestIdleCallback === "function") {
-//     (globalThis as any).requestIdleCallback(runAlert);
-//   } else {
-//     // Fallback for older RN versions / Android
-//     setTimeout(runAlert, 100);
-//   }
-// };
-
-// services/notificationService.ts
 import { PermissionsAndroid, Platform } from "react-native";
 import { LocationCoords } from "./locationService";
-
-// ─── Permission ───────────────────────────────────────────────────────────────
 
 const requestSmsPermission = async (): Promise<boolean> => {
   if (Platform.OS !== "android") return false;
@@ -78,8 +19,6 @@ const requestSmsPermission = async (): Promise<boolean> => {
     return false;
   }
 };
-
-// ─── Message Builder ──────────────────────────────────────────────────────────
 
 const buildSOSMessage = (
   sosId: string,
@@ -103,41 +42,52 @@ const buildSOSMessage = (
   ].join("\n");
 };
 
-// ─── Direct SMS (Android only) ────────────────────────────────────────────────
+// ─── Result type ──────────────────────────────────────────────────────────────
 
-const sendDirectSMS = (phone: string, message: string): Promise<void> =>
+type SMSResult = {
+  phone: string;
+  success: boolean;
+  message: string;
+};
+
+// ─── Direct SMS ───────────────────────────────────────────────────────────────
+
+const sendDirectSMS = (phone: string, message: string): Promise<SMSResult> =>
   new Promise((resolve) => {
     try {
-      // Explicit require — works in both debug and release APK
       const SmsAndroid = require("react-native-get-sms-android");
-
-      // react-native-get-sms-android exports differently depending on version
       const sms = SmsAndroid?.default ?? SmsAndroid;
 
       if (!sms?.autoSend) {
-        console.error("❌ autoSend not found on SmsAndroid module. Check package version.");
-        resolve();
+        const result = { phone, success: false, message: "autoSend method not found" };
+        console.error(` [SMS] ${phone} → ${result.message}`);
+        resolve(result);
         return;
       }
+
+      console.log(` [SMS] Attempting to send to ${phone}...`);
 
       sms.autoSend(
         phone,
         message,
-        (err: string) => { console.warn(`❌ SMS failed → ${phone}:`, err); resolve(); },
-        (msg: string) => { console.log(`✅ SMS sent → ${phone}:`, msg); resolve(); }
+        (err: string) => {
+          const result = { phone, success: false, message: err ?? "Unknown error" };
+          console.error(` [SMS] FAILED → ${phone} | Reason: ${result.message}`);
+          resolve(result);
+        },
+        (msg: string) => {
+          const result = { phone, success: true, message: msg ?? "Sent" };
+          console.log(` [SMS] SUCCESS → ${phone} | ${result.message}`);
+          resolve(result);
+        }
       );
-    } catch (err) {
-      console.error("❌ react-native-get-sms-android failed to load:", err);
-      resolve();
+
+    } catch (err: any) {
+      const result = { phone, success: false, message: err?.message ?? "Module load failed" };
+      console.error(` [SMS] EXCEPTION → ${phone} | ${result.message}`);
+      resolve(result);
     }
   });
-
-// * Defines an async function that sends an SMS using `react-native-get-sms-android` and returns a Promise.
-// * Dynamically loads the SMS module and handles different export formats.
-// * Checks if the `autoSend` method exists before attempting to send the message.
-// * Sends the SMS and logs either success or failure using callbacks.
-// * Always resolves the Promise (even on error) to prevent app crashes; works only on Android.
-
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
@@ -151,29 +101,39 @@ export const notifyTrustedContacts = async (
   const phones = friends.map((f) => f.phone).filter(Boolean);
 
   if (!phones.length) {
-    console.warn("⚠️ No trusted contacts to notify.");
+    console.warn(" [SMS] No trusted contacts to notify.");
     return;
   }
 
   if (!sosId || !location) {
-    console.warn("⚠️ Missing sosId or location — aborting notification.");
+    console.warn("[SMS] Missing sosId or location — aborting.");
     return;
   }
+
+  console.log(`[SMS] Preparing to notify ${phones.length} contact(s):`, phones);
 
   const message = buildSOSMessage(sosId, location, userMessage);
 
   if (Platform.OS === "android") {
     const granted = await requestSmsPermission();
     if (!granted) {
-      console.warn("⚠️ SEND_SMS permission denied.");
+      console.error(" [SMS] SEND_SMS permission denied — no SMS sent.");
       return;
     }
 
-    // Send SMS to all contacts in parallel; errors are logged but do not block others
-    await Promise.all(phones.map((phone) => sendDirectSMS(phone, message)));
-    
+    console.log(" [SMS] Permission granted — sending...");
+
+    const results = await Promise.all(phones.map((phone) => sendDirectSMS(phone, message)));
+
+    // ─── Summary log ───
+    const succeeded = results.filter(r => r.success);
+    const failed = results.filter(r => !r.success);
+
+    console.log(`[SMS] Summary: ${succeeded.length} sent, ${failed.length} failed`);
+    succeeded.forEach(r => console.log(`  ${r.phone}`));
+    failed.forEach(r => console.error(`   ${r.phone} → ${r.message}`));
+
   } else {
-    // iOS: silent SMS not allowed — foreground Linking only
     const { Linking } = await import("react-native");
     const encoded = encodeURIComponent(message);
     Linking.openURL(`sms:${phones[0]}&body=${encoded}`)

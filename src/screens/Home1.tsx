@@ -1,13 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  Dimensions,
-  Animated,
-} from "react-native";
+import { ScrollView, StyleSheet, Text, View, Image, Dimensions,  Animated } from "react-native";
 import SOSButton from "../components/Sosbutton";
 import Map from "../components/Map";
 

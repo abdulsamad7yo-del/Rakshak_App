@@ -11,6 +11,8 @@ import {
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Layout from "./src/app/Layout";
 import { requestAllPermissions } from "./src/utils/permissions";
+import { CameraProvider } from "./src/components/GlobalCamera";
+// import { CameraProvider } from "./src/components/GlobalCamera";
 
 export default function App() {
   const isDarkMode = useColorScheme() === "dark";
@@ -35,12 +37,15 @@ export default function App() {
   };
 
   return (
-    <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
-      <NavigationContainer>
-        <Layout />
-      </NavigationContainer>
-    </SafeAreaProvider>
+    <CameraProvider>
+
+      <SafeAreaProvider>
+        <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
+        <NavigationContainer>
+          <Layout />
+        </NavigationContainer>
+      </SafeAreaProvider>
+    </CameraProvider>
   );
 }
 

@@ -1,26 +1,36 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Animated, Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { useEffect, useRef, useState } from "react";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+// Task :react-native-vision-camera:generateCodegenSchemaFromJavaScript
+// No modules to process in combine-js-to-schema-cli. If this is unexpected, please check if you set up your NativeComponent correctly. See combine-js-to-schema.js for how codegen finds modules.
 
-import { getCurrentLocation, LocationCoords } from "../services/locationService";
-import { createSOS, updateSOS } from "../services/sosApi";
 import { initAudio, startRecording, stopRecording } from "../services/audioService";
 import { uploadAudio } from "../services/audioUploadService";
+import { getCurrentLocation } from "../services/locationService";
+import { createSOS, updateSOS } from "../services/sosApi";
 import { requestAudioPermission, requestLocationPermission } from "../utils/permissions";
 
 // Photo capture
-import { Camera, useCameraDevice } from "react-native-vision-camera";
-import { initCamera, startAutoCapture, stopAutoCapture } from "../services/photoService";
+import { useCameraDevice } from "react-native-vision-camera";
 import { notifyTrustedContacts } from "../services/notificationService";
-import { initVoiceRecognizer, stopVoiceRecognizer } from "../services/voiceRecognizer";
+import { initCamera, startAutoCapture, stopAutoCapture } from "../services/photoService";
+import { sosHandlerRef } from "../services/sosHandler";
+import { initVoiceRecognizer } from "../services/voiceRecognizer";
+import { useCameraContext } from "./GlobalCamera";
 
 // import { AUDIO_LIMIT_SEC, LOCATION_LIMIT_SEC } from "../utils/constants";
 
 interface UserData { id: string; }
 
+// limits in seconds
 const AUDIO_LIMIT_SEC = 120
-const LOCATION_LIMIT_SEC = 60
+const LOCATION_LIMIT_SEC = 40
 const PHOTO_CAPTURE_LIMIT_SEC = 120 * 60
+
+// // for global access to SOS handler (for voice command)
+// export const sosHandlerRef: MutableRefObject<(() => void) | null> = {
+//     current: null,
+//   };
 
 export default function SOSButton() {
   // const pulse = useRef(new Animated.Value(1)).current;
@@ -37,7 +47,10 @@ export default function SOSButton() {
 
   const recordInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const cameraRef = useRef<Camera>(null) as React.RefObject<Camera>;
+  // const cameraRef = useRef<Camera>(null) as React.RefObject<Camera>;
+
+  // getting camera ref from context
+  const { cameraRef, setCameraActive } = useCameraContext();
 
   const sosIdRef = useRef<string | null>(null); // Ref to always hold latest SOS ID
 
@@ -58,13 +71,17 @@ export default function SOSButton() {
       console.log("⚡ Initializing SOSButton...");
       const userStr = await AsyncStorage.getItem("loggedInUser");
       if (userStr) setUser(JSON.parse(userStr));
-      await initVoiceRecognizer(handleSOS);
+
+      // await initVoiceRecognizer(handleSOS);
+
       // Initialize audio safely
       console.log("🎤 Initializing Audio Service...");
       await initAudio();
 
       // Restore previous SOS
       const savedSOS = await AsyncStorage.getItem("activeSOS");
+      // console.log("savedsos", savedSOS);
+
 
       if (savedSOS) {
         const data = JSON.parse(savedSOS);
@@ -82,6 +99,7 @@ export default function SOSButton() {
 
           // Initialize camera & start auto-capture
           console.log("📸 Initializing Camera for auto-capture...");
+          setCameraActive(true);
           await initCamera(cameraRef);
           startAutoCapture(data.id);
         }
@@ -207,52 +225,121 @@ export default function SOSButton() {
       return;
     }
 
+
     setIsProcessing(true);
 
     try {
+      // if (!isActiveRef.current) {
+      //   console.log("🆘 Activating SOS...");
+
+      //   setIsActive(true);
+      //   isActiveRef.current = true;
+
+      //   if (!(await requestLocationPermission())) {
+      //     Alert.alert("Error", "Location permission denied");
+      //     return;
+      //   }
+
+      //   const location = await getCurrentLocation();
+      //   if (!location) {
+      //     Alert.alert("Error", "Could not get location");
+      //     return;
+      //   }
+
+      //   const id = await createSOS(currentUser.id, location); // currentUser
+
+      //   if (!id) {
+      //     Alert.alert("Error", "Failed to create SOS");
+      //     return;
+      //   }
+
+      //   stopVoiceRecognizer();
+      //   setSosId(id);
+
+      //   setIsActive(true);
+      //   isActiveRef.current = true;
+
+      //   await AsyncStorage.setItem("activeSOS", JSON.stringify({ id }));
+
+      //   // delay 
+      //   setTimeout(() => startAudio(id), 10);
+
+      //   setTimeout(() => startLocationInterval(id), 20)
+
+      //   console.log("📸 Init camera async...");
+      //   await initCamera(cameraRef);
+      //   startAutoCapture(id);
+
+      //   // setTimeout(async () => {
+      //   //   console.log("📸 Init camera async...");
+      //   //   await initCamera(cameraRef);
+      //   //   startAutoCapture(id);// default 2 min if want to change or give custom time to auto capture  startAutoCapture(id,const PHOTO_CAPTURE_LIMIT_SEC*1000);
+      //   // }, 500);
+      //   try {
+      //     fetchTrustedContactsAndMessage(currentUser.id).then(({ friends, userMessage }) => // currentUser
+      //       notifyTrustedContacts(friends, id, location, userMessage)
+      //     );
+      //   } catch (error) {
+
+      //   }
+
+
+      // } 
       if (!isActiveRef.current) {
         console.log("🆘 Activating SOS...");
 
-        if (!(await requestLocationPermission())) {
-          Alert.alert("Error", "Location permission denied");
-          return;
-        }
-
-        const location = await getCurrentLocation();
-        if (!location) {
-          Alert.alert("Error", "Could not get location");
-          return;
-        }
-
-        const id = await createSOS(currentUser.id, location); // currentUser
-
-        if (!id) {
-          Alert.alert("Error", "Failed to create SOS");
-          return;
-        }
-
-        stopVoiceRecognizer();
-        setSosId(id);
+        // INSTANT UI RESPONSE (fix lag)
         setIsActive(true);
         isActiveRef.current = true;
-        await AsyncStorage.setItem("activeSOS", JSON.stringify({ id }));
 
-        // delay 
-        setTimeout(() => startAudio(id), 10);
+        // optional: keep "..." or remove
+        setIsProcessing(true);
 
-        startLocationInterval(id);
+        try {
+          if (!(await requestLocationPermission())) {
+            throw new Error("Location permission denied");
+          }
 
-        setTimeout(async () => {
-          console.log("📸 Init camera async...");
-          await initCamera(cameraRef);
-          startAutoCapture(id);// default 2 min if want to change or give custom time to auto capture  startAutoCapture(id,const PHOTO_CAPTURE_LIMIT_SEC*1000);
-        }, 500);
+          const location = await getCurrentLocation();
+          if (!location) throw new Error("No location");
 
-        fetchTrustedContactsAndMessage(currentUser.id).then(({ friends, userMessage }) => // currentUser
-          notifyTrustedContacts(friends, id, location, userMessage)
-        );
+          const id = await createSOS(currentUser.id, location);
+          if (!id) throw new Error("SOS creation failed");
 
-      } else {
+          // stopVoiceRecognizer();
+
+          setSosId(id);
+          await AsyncStorage.setItem("activeSOS", JSON.stringify({ id }));
+
+
+          // Run heavy stuff async 
+          setTimeout(() => startAudio(id), 0);
+          setTimeout(() => startLocationInterval(id), 0);
+
+          setCameraActive(true);
+          initCamera(cameraRef).then(() => {
+            startAutoCapture(id);
+          });
+
+          fetchTrustedContactsAndMessage(currentUser.id).then(({ friends, userMessage }) =>
+            notifyTrustedContacts(friends, id, location, userMessage)
+          );
+
+        } catch (err) {
+          console.error(err);
+
+          // rollback UI if failed
+          setIsActive(false);
+          // stopAutoCapture();
+          setCameraActive(false);
+          isActiveRef.current = false;
+
+          Alert.alert("Error", "Failed to activate SOS");
+        } finally {
+          setIsProcessing(false);
+        }
+      }
+      else {
         console.log("Deactivating SOS...");
 
         const currentSosId = sosIdRef.current;
@@ -262,6 +349,7 @@ export default function SOSButton() {
         setTimeout(() => stopAudio(currentSosId as string), 10);
         stopLocationInterval();
         stopAutoCapture();
+        setCameraActive(false);
 
         isActiveRef.current = false;
         setIsActive(false);
@@ -272,19 +360,27 @@ export default function SOSButton() {
         setTimeout(() => initVoiceRecognizer(handleSOS), 500);
       }
     } catch (err) {
-      console.error("❌ SOS error:", err);
+      console.error(" SOS error:", err);
       Alert.alert("Error", "Something went wrong");
     } finally {
       setIsProcessing(false);
     }
   };
 
+  useEffect(() => {
+    sosHandlerRef.current = handleSOS;
+  }, [handleSOS]);
+
 
   // ---------------------------- Render ----------------------------
   return (
     <View style={[styles.container]}>
       {/* Hidden camera for auto capture */}
-      {device && <Camera ref={cameraRef} style={{ width: 0, height: 0 }} isActive={true} photo={true} device={device} />}
+
+      {/* MOved to GlobalCamera */}
+      {/* {device && <Camera ref={cameraRef} style={{ width: 0, height: 0 }} isActive={isActive} photo={true} device={device}
+      // format={format} 
+      />} */}
 
       <TouchableOpacity
         disabled={isProcessing}
