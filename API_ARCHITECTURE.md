@@ -11,398 +11,470 @@
 
 ## API Reference
 
-### Base URL
-```
-https://rakshak-gamma.vercel.app
-```
+---
 
-### Common Headers
-```
-Content-Type: application/json
-Authorization: Bearer {token} (if required)
-```
+## 🌐 Live
+
+| Resource | URL |
+|---|---|
+| API Base URL | `https://rakshak-gamma.vercel.app/api/` |
+| Web Dashboard | `https://rakshak-gamma.vercel.app` |
 
 ---
 
-## Authentication Endpoints
+## 📦 Tech Stack
 
-### 1. User Sign In
-```http
-POST /api/auth/signin
-```
-
-**Request:**
-```json
-{
-  "phoneNumber": "9876543210",
-  "password": "SecurePass@123"
-}
-```
-
-**Response (Success):**
-```json
-{
-  "success": true,
-  "user": {
-    "id": "user_12345",
-    "email": "user@example.com",
-    "phoneNumber": "9876543210",
-    "details": {
-      "codeWord": "help",
-      "message": "HELP!!",
-      "permanentAddress": {
-        "lat": 28.6139,
-        "lng": 77.2090
-      },
-      "trustedFriends": [
-        { "name": "Mom", "phone": "9999999999" },
-        { "name": "Dad", "phone": "9898989898" }
-      ]
-    }
-  }
-}
-```
-
-**Response (Error):**
-```json
-{
-  "success": false,
-  "message": "Invalid credentials"
-}
-```
+| Layer | Tech |
+|---|---|
+| Mobile App | React Native |
+| Backend / API | Next.js (API Routes) |
+| Database | MongoDB via Prisma |
+| Media Storage | Cloudinary |
+| Auth | JWT (web dashboard) |
+| Deployment | Vercel |
 
 ---
 
-### 2. User Registration
-```http
-POST /api/auth/signup
-```
+## ✨ Features
 
-**Request:**
+### Mobile App (React Native)
+- One-tap SOS alert with live GPS location
+- Auto-capture photos and audio during emergencies
+- Manage trusted contacts (name + phone)
+- Set a custom code word and emergency message
+- View personal SOS history
+
+### Web Dashboard (Next.js)
+- Sign in with JWT-protected authentication
+- View full SOS history with **date filtering**
+- Inspect each SOS: location, status, attached media (photos & audio)
+- Live location polling for active SOS alerts
+- API documentation page with interactive test panel (access-code protected)
+
+---
+
+## 📡 API Reference
+
+All endpoints are prefixed with `https://rakshak-gamma.vercel.app/api/`
+
+### 🔐 Authentication
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/auth/signup` | Register a new user. Required: `email`, `username`, `phoneNumber`, `password`. Automatically creates userDetails with default emergency settings. |
+| `POST` | `/auth/signin` | Sign in using `phoneNumber` and `password`. Returns user data and sets a JWT cookie (`token`). |
+
+<details>
+<summary>Signup example</summary>
+
+**Request**
 ```json
 {
   "email": "user@example.com",
-  "username": "john_doe",
-  "phoneNumber": "9876543210",
-  "password": "SecurePass@123"
+  "username": "Riya",
+  "phoneNumber": "9827453783",
+  "password": "jkAbc!@12"
 }
 ```
 
-**Response (Success):**
+**Response**
 ```json
 {
   "success": true,
   "message": "User registered successfully",
   "user": {
-    "id": "user_12345",
+    "id": "68fcc70c132244eaf83b68b0",
+    "username": "Riya",
     "email": "user@example.com",
-    "phoneNumber": "9876543210"
+    "phoneNumber": "9827453783",
+    "createdAt": "2025-10-25T12:48:12.732Z"
   }
 }
 ```
-
-**Validation Rules:**
-- Email: Valid email format
-- Phone: 10 digits (numeric only)
-- Password: Min 8 chars + 1 special character
-- Username: Alphanumeric + underscore
+</details>
 
 ---
 
-## SOS Management Endpoints
+### 👤 User
 
-### 3. Create SOS Alert
-```http
-POST /api/sos-alert
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET / PUT / DELETE` | `/user/[id]` | Fetch, update, or delete a user by ID |
+| `GET / PUT` | `/user/[id]/details` | Fetch or update user details including `permanentAddress`, `codeWord`, and emergency `message` |
+
+---
+
+### 🤝 Trusted Friends
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET / POST` | `/user/[id]/trusted-friends` | List or add a trusted contact |
+| `PUT / DELETE` | `/user/[id]/trusted-friends/[friendId]` | Edit or remove a specific contact |
+
+<details>
+<summary>Add friend example</summary>
+
+**Request**
+```json
+{ "name": "Ali", "phone": "9876543211" }
 ```
 
-**Request:**
+**Response**
 ```json
 {
-  "userId": "user_12345",
-  "location": {
-    "lat": 28.6139,
-    "lng": 77.2090
-  },
+  "success": true,
+  "message": "Friend added successfully",
+  "friend": {
+    "id": "8s7d09as8d0a9",
+    "name": "Ali",
+    "phone": "9876543211"
+  }
+}
+```
+</details>
+
+---
+
+### 🚨 SOS Alerts
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/sos-alert` | Create a new SOS alert linked to a user |
+| `GET` | `/sos-alert` | Admin endpoint to fetch all SOS alerts |
+| `GET / PUT / DELETE` | `/sos-alert/[id]` | Fetch, update, or delete a specific SOS alert |
+| `GET` | `/sos-alert/user/[userid]` | Fetch SOS history of a specific user including media |
+
+<details>
+<summary>Create SOS example</summary>
+
+**Request**
+```json
+{
+  "userId": "68ffa766ac0cd72ed42de692",
+  "location": { "lat": 12.9716, "lng": 77.5946 },
   "status": "active"
 }
 ```
 
-**Response (Success):**
+**Response**
 ```json
 {
   "success": true,
+  "message": "SOS alert created successfully",
   "sos": {
-    "id": "sos_abc123xyz",
-    "userId": "user_12345",
-    "timestamp": "2026-03-18T10:30:00Z",
-    "location": {
-      "lat": 28.6139,
-      "lng": 77.2090
-    },
-    "status": "active",
-    "media": []
+    "id": "6530a1f3b5c7da1a5a2b2cd9",
+    "timestamp": "2025-10-25T11:32:56.492Z",
+    "location": { "lat": 12.9716, "lng": 77.5946 },
+    "status": "active"
   }
 }
 ```
-
-**Status Codes:**
-- `active` - SOS in progress
-- `paused` - SOS paused
-- `resolved` - SOS completed
+</details>
 
 ---
 
-### 4. Update SOS Alert
-```http
-PUT /api/sos-alert/{sosId}
+### 🗂️ Media
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/media/upload` | Upload images and/or audio linked to an SOS alert |
+| `GET` | `/media/[id]` | Fetch all media linked to a specific SOS alert ID |
+
+**Upload limits:** Images up to **13 MB**, audio up to **15 MB**. Files are stored in Cloudinary under `Rakshak_uploads/images` and `Rakshak_uploads/audio`.
+
+<details>
+<summary>Upload media example</summary>
+
+**Form fields**
+```
+sosAlertId  — string (required)
+files       — image files (multiple)
+audio       — single audio file (optional)
 ```
 
-**Path Parameters:**
-- `sosId` (string): SOS alert ID from creation
-
-**Request:**
+**Response**
 ```json
 {
-  "location": {
-    "lat": 28.6150,
-    "lng": 77.2100
-  },
-  "status": "active"
-}
-```
-
-**Response (Success):**
-```json
-{
-  "success": true,
-  "sos": {
-    "id": "sos_abc123xyz",
-    "location": {
-      "lat": 28.6150,
-      "lng": 77.2100
-    },
-    "lastUpdated": "2026-03-18T10:31:00Z"
-  }
-}
-```
-
-**Frequency:** Called every 40 seconds during SOS
-
----
-
-### 5. Get SOS Alert Details
-```http
-GET /api/sos-alert/{sosId}
-```
-
-**Response (Success):**
-```json
-{
-  "success": true,
-  "sos": {
-    "id": "sos_abc123xyz",
-    "userId": "user_12345",
-    "timestamp": "2026-03-18T10:30:00Z",
-    "status": "active",
-    "location": {
-      "lat": 28.6139,
-      "lng": 77.2090
-    },
-    "media": [
-      {
-        "id": "media_001",
-        "type": "audio",
-        "url": "https://cdn.example.com/audio/sos_abc123xyz_001.wav",
-        "duration": 45,
-        "uploadedAt": "2026-03-18T10:35:00Z"
-      },
-      {
-        "id": "media_002",
-        "type": "photo",
-        "url": "https://cdn.example.com/photos/sos_abc123xyz_001.jpg",
-        "uploadedAt": "2026-03-18T10:33:00Z"
-      }
-    ],
-    "notifications": {
-      "contactsNotified": 3,
-      "smsCount": 3,
-      "unreachable": 0
-    }
-  }
-}
-```
-
----
-
-## User Management Endpoints
-
-### 6. Get User Details
-```http
-GET /api/user/{userId}/details
-```
-
-**Path Parameters:**
-- `userId` (string): User ID
-
-**Response (Success):**
-```json
-{
-  "success": true,
-  "details": {
-    "codeWord": "help",
-    "message": "I am in danger!",
-    "permanentAddress": {
-      "lat": 28.6139,
-      "lng": 77.2090
-    },
-    "trustedFriends": [
-      {
-        "id": "contact_001",
-        "name": "Mom",
-        "phone": "9999999999",
-        "isPrimary": true,
-        "addedAt": "2026-02-01T10:00:00Z"
-      },
-      {
-        "id": "contact_002",
-        "name": "Dad",
-        "phone": "9898989898",
-        "isPrimary": false
-      }
-    ]
-  }
-}
-```
-
----
-
-### 7. Update User Details
-```http
-PUT /api/user/{userId}/update
-```
-
-**Request:**
-```json
-{
-  "codeWord": "emergency",
-  "message": "Help me now!",
-  "permanentAddress": {
-    "lat": 28.6139,
-    "lng": 77.2090
-  },
-  "trustedFriends": [
+  "uploaded": [
     {
-      "name": "Mom",
-      "phone": "9999999999",
-      "isPrimary": true
-    },
-    {
-      "name": "Police",
-      "phone": "100",
-      "isPrimary": false
+      "id": "media123",
+      "sosAlertId": "6530a1f3b5c7da1a5a2b2cd9",
+      "type": "photo",
+      "url": "https://res.cloudinary.com/...",
+      "format": "jpg",
+      "uploadedAt": "2025-10-25T11:33:00.000Z"
     }
   ]
 }
 ```
+</details>
 
-**Response (Success):**
-```json
-{
-  "success": true,
-  "message": "User details updated successfully",
-  "details": {
-    "codeWord": "emergency",
-    "message": "Help me now!",
-    "trustedFriends": [...]
-  }
+---
+
+## 🖥️ Web Dashboard Screenshots
+<!-- <img width="1895" height="952" alt="image" src="https://github.com/user-attachments/assets/b27232b3-813e-4ebe-9193-b1bdd4be0e51" /> -->
+
+| Page | Preview |
+|---|---|
+| Landing Page | ![Landing](https://github.com/user-attachments/assets/03444523-aa7e-4803-a476-27631e9d8e53) |
+| SOS History (with date filter) | ![SOS History](https://github.com/user-attachments/assets/4d2f6aad-cf43-4cf0-b5c5-e606cf8ebad0) |
+| Active SOS Alert | ![Active SOS](https://github.com/user-attachments/assets/d38c7f80-2b6c-43d2-983d-8bcabd162079) |
+| Individual SOS Page | ![SOS Media](https://github.com/user-attachments/assets/b27232b3-813e-4ebe-9193-b1bdd4be0e51) |
+| SOS Location Polling | ![Location Polling](https://github.com/user-attachments/assets/d825033f-8434-4a21-8248-c998ee5ce4dd) |
+| API Docs Page | ![API Docs](https://github.com/user-attachments/assets/8a46959e-c656-47a3-b826-10202f749dce) |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+
+- MongoDB connection string
+- Cloudinary account
+
+### Environment Variables
+
+```env
+DATABASE_URL=mongodb+srv://...
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+JWT_SECRET=...
+```
+
+### Install & Run
+
+```bash
+git clone https://github.com/Samad10jan/rakshak
+cd rakshak
+npm install
+npm run dev
+```
+
+---
+## 📁 Project Structure
+```
+RAKSHAK/
+├── .next/
+├── generated/
+├── node_modules/
+├── prisma/
+│   └── schema.prisma
+├── public/
+├── src/
+│   ├── app/
+│   │   ├── api/                    # API routes
+│   │   ├── documentation/
+│   │   │   └── page.tsx            # API docs page
+│   │   ├── login/
+│   │   │   └── page.tsx
+│   │   ├── sos/
+│   │   │   ├── [sosId]/
+│   │   │   │   └── page.tsx        # Individual SOS page
+│   │   │   └── page.tsx            # SOS history page
+│   │   ├── favicon.ico
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   └── page.tsx                # Landing page
+│   ├── components/
+│   └── lib/
+├── .env
+├── .gitignore
+├── components.json
+├── next-env.d.ts
+├── next.config.ts
+├── package.json
+├── package-lock.json
+├── postcss.config.mjs
+├── prisma.config.ts
+├── README.md
+└── tsconfig.json
+
+```
+
+## 📁 APi Structure
+
+```
+src/
+└── app/
+    └── api/
+        ├── auth/
+        │   ├── signin/
+        │   │   └── route.ts        # POST sign in user
+        │   └── signup/
+        │       └── route.ts        # POST register new user
+        ├── media/
+        │   ├── [id]/
+        │   │   └── route.ts        # GET media for a specific SOS alert
+        │   └── upload/
+        │       └── route.ts        # POST upload images/audio
+        ├── sos-alert/
+        │   ├── [id]/
+        │   │   └── route.ts        # GET, PUT, DELETE specific alert
+        │   ├── user/[userid]/
+        │   │   └── route.ts        # GET all alerts for a specific user
+        │   └── route.ts            # GET all alerts (admin), POST create new alert
+        └── user/[id]/
+            ├── details/
+            │   └── route.ts        # GET, PUT user details
+            ├── trusted-friends/
+            │   ├── [friendId]/
+            │   │   └── route.ts    # PUT, DELETE specific friend
+            │   └── route.ts        # GET, POST trusted friends
+            └── route.ts            # GET, PUT, DELETE user
+```
+## Data Models
+
+Rakshak uses **Prisma ORM with MongoDB** with ObjectId-based document modeling, explicit foreign-key relations, and cascading deletes.
+
+---
+
+### ⚙️ Design decisions
+
+| Concern | Choice |
+|---|---|
+| Database | MongoDB (NoSQL, document-based) |
+| ORM | Prisma (`@db.ObjectId` for MongoDB compat) |
+| ID strategy | `String @id @default(auto()) @map("_id") @db.ObjectId` |
+| Relations | Manual FK (`@db.ObjectId`) + Prisma `@relation` |
+| Cascading | `onDelete: Cascade` on all dependent models |
+
+---
+
+### 🧑 User
+
+```prisma
+model User {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  username    String
+  email       String?  @unique
+  phoneNumber String   @unique
+  password    String
+  createdAt   DateTime @default(now())
+
+  details UserDetails?
+}
+```
+
+- `phoneNumber` is the primary login identifier
+- `email` is optional with sparse unique constraint
+- 1:1 relation owned by `UserDetails` (FK lives there)
+
+---
+
+### 📄 UserDetails
+
+```prisma
+model UserDetails {
+  id               String          @id @default(auto()) @map("_id") @db.ObjectId
+  userId           String          @unique @db.ObjectId
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  permanentAddress Json?
+  codeWord         String          @default("help")
+  message          String          @default("HELP!!! I am in danger.")
+
+  trustedFriends   TrustedFriend[]
+  sosHistory       SOSAlert[]
+}
+```
+
+- `@unique userId` enforces 1:1 with `User`
+- `Json` used for flexible address structure (lat/lng or full address)
+- Aggregation root for trusted contacts and SOS alerts
+
+---
+
+### 🤝 TrustedFriend
+
+```prisma
+model TrustedFriend {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  userDetailsId String      @db.ObjectId
+  userDetails   UserDetails @relation(fields: [userDetailsId], references: [id], onDelete: Cascade)
+
+  name          String
+  phone         String      @unique
+}
+```
+
+- Many-to-one with `UserDetails`
+- `phone` globally unique — prevents duplicates across users
+
+---
+
+### 🚨 SOSAlert
+
+```prisma
+model SOSAlert {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  userDetailsId String      @db.ObjectId
+  userDetails   UserDetails @relation(fields: [userDetailsId], references: [id], onDelete: Cascade)
+
+  timestamp     DateTime    @default(now())
+  location      Json?
+  status        Status      @default(inactive)
+
+  media         Media[]
+}
+```
+
+- `Json` location allows flexible GPS: `{ lat, lng }`
+- Recommended indexes: `userDetailsId`, `timestamp`
+
+---
+
+### 🗂️ Media
+
+```prisma
+model Media {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  sosAlertId String    @db.ObjectId
+  sosAlert   SOSAlert  @relation(fields: [sosAlertId], references: [id], onDelete: Cascade)
+
+  type       MediaType
+  publicId   String
+  url        String
+  format     String
+
+  duration   Int?
+  width      Int?
+  height     Int?
+
+  uploadedAt DateTime  @default(now())
+}
+```
+
+- Cloudinary integration: `publicId` → asset ref, `url` → delivery URL
+- Optional metadata fields depend on media type
+
+---
+
+### 🔢 Enums
+
+```prisma
+enum MediaType {
+  audio
+  video
+  photo
+}
+
+enum Status {
+  active
+  inactive
 }
 ```
 
 ---
 
-## Media Upload Endpoints
+### 🔗 Relationship summary
 
-### 8. Upload Media (Audio/Photos)
-```http
-POST /api/media/upload
-Content-Type: multipart/form-data
-```
-
-**Request (FormData):**
-```
-sosAlertId: sos_abc123xyz
-audio: [File] audio.wav          (Optional)
-photos: [File[]] photo_001.jpg   (Optional - multiple)
-```
-
-**Response (Success):**
-```json
-{
-  "success": true,
-  "urls": [
-    "https://cdn.example.com/audio/sos_abc123xyz_audio.wav",
-    "https://cdn.example.com/photos/sos_abc123xyz_photo_001.jpg",
-    "https://cdn.example.com/photos/sos_abc123xyz_photo_002.jpg"
-  ],
-  "uploadTime": "2026-03-18T10:40:00Z"
-}
-```
-
-**Constraints:**
-- Audio: Max 120 seconds, 16kHz, mono, WAV format
-- Photos: Max 10MB total, JPEG format
-- Max 5 photos per upload
-
----
-
-## Error Responses
-
-### Common Error Codes
-
-**400 - Bad Request**
-```json
-{
-  "success": false,
-  "message": "Invalid input parameters",
-  "errors": {
-    "phoneNumber": "Must be 10 digits",
-    "password": "Must contain special character"
-  }
-}
-```
-
-**401 - Unauthorized**
-```json
-{
-  "success": false,
-  "message": "Invalid credentials or expired token"
-}
-```
-
-**403 - Forbidden**
-```json
-{
-  "success": false,
-  "message": "User does not have access to this resource"
-}
-```
-
-**404 - Not Found**
-```json
-{
-  "success": false,
-  "message": "SOS alert with ID 'sos_abc123xyz' not found"
-}
-```
-
-**500 - Internal Server Error**
-```json
-{
-  "success": false,
-  "message": "Internal server error. Please try again later."
-}
-```
+| Relation | Type | Implementation |
+|---|---|---|
+| User → UserDetails | 1:1 | `userId @unique` |
+| UserDetails → TrustedFriend | 1:N | FK in TrustedFriend |
+| UserDetails → SOSAlert | 1:N | FK in SOSAlert |
+| SOSAlert → Media | 1:N | FK in Media |
 
 ---
 
@@ -682,93 +754,6 @@ notifyTrustedContacts(friends, sosId, location, message?): Promise<void>
 
 ---
 
-## Data Models
-
-### User Model
-```typescript
-interface User {
-  id: string;
-  email: string;
-  phoneNumber: string;
-  username: string;
-  details?: UserDetails;
-}
-
-interface UserDetails {
-  permanentAddress?: {
-    lat: number;
-    lng: number;
-  };
-  codeWord?: string;       // Voice activation word
-  message?: string;        // SMS message to send
-  trustedFriends?: TrustedContact[];
-}
-
-interface TrustedContact {
-  id: string;
-  name: string;
-  phone: string;
-  isPrimary: boolean;
-  addedAt: string;
-}
-```
-
----
-
-### SOS Model
-```typescript
-interface SOSItem {
-  id: string;
-  userId: string;
-  timestamp: string;        // When SOS was triggered
-  status: "active" | "paused" | "resolved";
-  location: LocationCoords;
-  media: MediaItem[];
-  notifications: {
-    contactsNotified: number;
-    smsCount: number;
-    unreachable: number;
-  };
-  lastUpdated: string;
-}
-
-interface MediaItem {
-  id: string;
-  type: "audio" | "photo";
-  url: string;
-  duration?: number;        // For audio
-  uploadedAt: string;
-}
-
-interface LocationCoords {
-  lat: number;
-  lng: number;
-}
-```
-
----
-
-### SOS Message Model
-```typescript
-interface SOSMessage {
-  header: "🚨 SOS ALERT 🚨";
-  body: string;              // User message or default
-  location: {
-    mapUrl: string;          // Google Maps link
-    coordinates: string;     // Lat, Lng
-  };
-  details: {
-    sosUrl: string;          // Link to SOS dashboard
-    timestamp: string;
-  };
-  metadata: {
-    deviceType: "Android" | "iOS";
-    appVersion: string;
-  };
-}
-```
-
----
 
 ## Error Handling
 
@@ -800,38 +785,7 @@ try {
 
 ---
 
-### Error Types Handled
 
-| Error | Handling |
-|-------|----------|
-| Permission Denied | Alert user + guide to settings |
-| Network Timeout | Retry with exponential backoff |
-| GPS Not Available | Show map location picker |
-| Camera Failure | Skip photo capture, continue SOS |
-| Audio Failure | Show warning, continue SOS |
-| Contact Not Reachable | Log attempt, continue with others |
-| Upload Failure | Retry up to 3 times automatically |
-
----
-
-### Logging Strategy
-
-```typescript
-// Development logs
-console.log("🎤 Listening...");        // Info
-console.warn("⚠️ Permission denied");  // Warning
-console.error("❌ Upload failed");     // Error
-
-// Analytics logs
-logEvent("SOS_TRIGGERED", {
-  timestamp: Date.now(),
-  userId,
-  locationValid: !!location,
-  contactsNotified: count
-});
-```
-
----
 
 ## Performance Considerations
 
@@ -893,5 +847,3 @@ This architecture ensures:
 - ✅ **Scalability**: Easy to add new services/features
 
 ---
-
-**Last Updated: March 2026**
