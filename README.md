@@ -12,7 +12,7 @@
 
 A comprehensive React Native mobile application providing real-time emergency safety features with one-tap SOS alerts, real-time location tracking, voice activation, and instant SMS notifications to trusted emergency contacts.
 
-[🚀 Quick Start](#quick-start) • [📚 Documentation](#documentation) • [✨ Features](#features) • [🏗️ Architecture](#architecture)
+• [📚 Documentation](#documentation) • [✨ Features](#features) • [🏗️ Architecture](#architecture)
 
 </div>
 
@@ -65,22 +65,13 @@ Complete documentation is organized into specialized guides for different audien
 
 ### 🎯 Choose Your Starting Point
 
-| Document | Best For | Time |
-|----------|----------|------|
-| **[QUICK_START.md](./QUICK_START.md)** | Getting started in 5 mins | ⚡ 5 min |
-| **[README_DETAILED.md](./README_DETAILED.md)** | Full project overview | 📖 20 min |
-| **[COMPONENTS_SCREENS.md](./COMPONENTS_SCREENS.md)** | Building UI components | 🧩 15 min |
-| **[API_ARCHITECTURE.md](./API_ARCHITECTURE.md)** | Understanding backend APIs | 🔌 25 min |
-| **[DEPENDENCIES_SETUP.md](./DEPENDENCIES_SETUP.md)** | Environment setup & config | ⚙️ 15 min |
+| Document | Best For |
+|----------|----------|
+| **[README_DETAILED.md](./README_DETAILED.md)** | Full project overview | 
+| **[COMPONENTS_SCREENS.md](./COMPONENTS_SCREENS.md)** | Building UI components | 
+| **[API_ARCHITECTURE.md](./API_ARCHITECTURE.md)** | Understanding backend APIs | 
+| **[DEPENDENCIES_SETUP.md](./DEPENDENCIES_SETUP.md)** | Environment setup & config 
 
-### 📋 Documentation Index
-
-**New Developer?**
-```
-1. Start: QUICK_START.md
-2. Then: README_DETAILED.md  
-3. Setup: DEPENDENCIES_SETUP.md
-```
 
 **Building Components?**
 ```
@@ -150,13 +141,14 @@ npm start
 - Watch real-time tracking
 - Check SMS notifications
 
-**👉 More details:** [QUICK_START.md](./QUICK_START.md)
 
 ---
 
 ## 🏗️ Architecture
 
 ```
+**👉 Detailed architecture:** [API_ARCHITECTURE.md](./API_ARCHITECTURE.md
+
 ┌─────────────────────────┐
 │   App.tsx (Entry)       │
 ├─────────────────────────┤
@@ -193,11 +185,13 @@ npm start
 └─────────────────────────┘
 ```
 
-**👉 Detailed architecture:** [API_ARCHITECTURE.md](./API_ARCHITECTURE.md)
+
 
 ---
 
 ## 📁 Project Structure
+
+**👉 Full dependency list:** [DEPENDENCIES_SETUP.md](./DEPENDENCIES_SETUP.md)
 
 ```
 RakshakAPP/
@@ -251,34 +245,11 @@ RakshakAPP/
 Backend: `https://rakshak-gamma.vercel.app`
 
 ### Key Endpoints
-```
-Authentication:
-POST   /api/auth/signin         (Login)
-POST   /api/auth/signup        (Register)
 
-SOS Management:
-POST   /api/sos-alert          (Create SOS)
-PUT    /api/sos-alert/{id}     (Update location)
-GET    /api/sos-alert/{id}     (Get details)
-
-User Data:
-GET    /api/user/{id}/details  (Get profile)
-PUT    /api/user/{id}/update   (Update profile)
-
-Media:
-POST   /api/media/upload       (Upload audio/photos)
-```
 
 **👉 Complete API reference:** [API_ARCHITECTURE.md](./API_ARCHITECTURE.md)
 
 ---
-
-## 📱 Supported Platforms
-
-| Platform | Min Version | Status |
-|----------|-------------|--------|
-| Android | API 24 | ✅ Tested |
-| iOS | 13.0 | ✅ Tested |
 
 ### Permissions Required
 
@@ -298,36 +269,9 @@ POST   /api/media/upload       (Upload audio/photos)
 
 ---
 
-## 🔐 Key Security Features
-
-✅ **Secure Authentication** - Phone + password with validation
-✅ **Encrypted Storage** - LocalStorage encryption on device
-✅ **HTTPS Communication** - All API calls secured
-✅ **Permission Validation** - Runtime permission checks
-✅ **Session Management** - Secure token-based sessions
-✅ **Data Privacy** - No unnecessary data collection
-
----
 
 ## 🚨 SOS Workflow
 
-```
-User presses SOS button
-    ↓
-[1] Get current location
-[2] Create SOS alert (receive ID)
-[3] Start audio recording
-[4] Initialize camera
-[5] Start location tracking (every 40 sec)
-[6] Fetch and notify trusted contacts
-[7] Upload media (audio, photos)
-    ↓
-Continuous updates until stopped
-    ↓
-User stops or reaches time limit
-    ↓
-Upload final media & close session
-```
 
 **👉 Detailed workflow:** [README_DETAILED.md](./README_DETAILED.md)
 
@@ -391,13 +335,6 @@ npm start -- --reset-cache
 
 ---
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
 
 ### Code Style
 - Use TypeScript for type safety
@@ -408,33 +345,14 @@ npm start -- --reset-cache
 
 ---
 
-## 📄 License
+## Documentation Files
 
-This project is licensed under the **MIT License** - see the LICENSE file for details.
-
----
-
-## 👨‍💼 Contact & Support
-
-| Channel | Details |
-|---------|---------|
-| **Email** | support@rakshak.app |
-| **Website** | https://rakshak-gamma.vercel.app |
-| **GitHub** | Issues & Discussions |
-| **Emergency** | Call local emergency services (911, 112) |
-
----
-
-## 📖 Additional Resources
-
-### Documentation Files
-- 📘 [QUICK_START.md](./QUICK_START.md) - 5-minute setup guide
 - 📗 [README_DETAILED.md](./README_DETAILED.md) - Complete project documentation
 - 📙 [COMPONENTS_SCREENS.md](./COMPONENTS_SCREENS.md) - Component & screen reference
 - 📕 [API_ARCHITECTURE.md](./API_ARCHITECTURE.md) - API & architecture guide
 - 📓 [DEPENDENCIES_SETUP.md](./DEPENDENCIES_SETUP.md) - Environment setup
-
-### External Links
+---
+## External Links
 - [React Native Docs](https://reactnative.dev/)
 - [React Navigation Docs](https://reactnavigation.org/)
 - [TypeScript Handbook](https://www.typescriptlang.org/docs/)
@@ -443,7 +361,9 @@ This project is licensed under the **MIT License** - see the LICENSE file for de
 
 ---
 
-## 🎯 Roadmap
+## 🎯 Future Scope 
+
+[README_DETAILED.md](./README_DETAILED.md) - Complete project documentation
 
 ### v2.0 (Planned)
 - [ ] Emergency services integration
@@ -461,20 +381,6 @@ This project is licensed under the **MIT License** - see the LICENSE file for de
 
 ---
 
-## 📊 Status
-
-| Component | Status | Last Updated |
-|-----------|--------|--------------|
-| **Core SOS** | ✅ Production Ready | Mar 2026 |
-| **Voice Recognition** | ✅ Working | Mar 2026 |
-| **Location Tracking** | ✅ Tested | Mar 2026 |
-| **Audio Recording** | ✅ Functional | Mar 2026 |
-| **SMS Notifications** | ✅ Implemented | Mar 2026 |
-| **Photo Capture** | ✅ Auto-capture | Mar 2026 |
-| **Maps Integration** | ✅ Active | Mar 2026 |
-
----
-
 ## ⭐ Highlights
 
 - 🎯 **Fast SOS Activation** - One-tap emergency alert
@@ -484,22 +390,3 @@ This project is licensed under the **MIT License** - see the LICENSE file for de
 - 👥 **Smart Notifications** - SMS to trusted contacts instantly
 - 🎨 **Beautiful UI** - Modern design with animations
 - 🔒 **Secure** - End-to-end communication
-- 🌍 **Multi-Platform** - Android & iOS support
-
----
-
-<div align="center">
-
-### 🛡️ Protecting Lives, One Alert at a Time
-
-**Made with ❤️ for Safety & Security**
-
-[📖 Explore Documentation](./QUICK_START.md) • [🐛 Report Issue](https://github.com/yourusername/Rakshak-React-Native/issues) • [💬 Discussions](https://github.com/yourusername/Rakshak-React-Native/discussions)
-
----
-
-**Last Updated:** March 18, 2026  
-**Version:** 0.0.1  
-**Status:** ✅ Active Development
-
-</div>
