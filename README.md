@@ -6,7 +6,7 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8.3-blue?logo=typescript&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS-green?logo=android&logoColor=white)
 ![Node](https://img.shields.io/badge/Node-%3E%3D20-green?logo=node.js&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-yellow?logo=open-source-initiative&logoColor=white)
+
 
 **Rakshak** — *Your Safety, Our Priority* 
 
