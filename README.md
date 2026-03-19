@@ -1,4 +1,4 @@
-# 🛡️ RAKSHAK - Emergency Safety & SOS Alert App
+# RAKSHAK - Emergency Safety & SOS Alert App
 
 <div align="center">
 
@@ -8,15 +8,48 @@
 ![Node](https://img.shields.io/badge/Node-%3E%3D20-green?logo=node.js&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-yellow?logo=open-source-initiative&logoColor=white)
 
-**Rakshak** — *Your Safety, Our Priority* 🚨
+**Rakshak** — *Your Safety, Our Priority* 
 
 A comprehensive React Native mobile application providing real-time emergency safety features with one-tap SOS alerts, real-time location tracking, voice activation, and instant SMS notifications to trusted emergency contacts.
-
-• [📚 Documentation](#documentation) • [✨ Features](#features) • [🏗️ Architecture](#architecture)
 
 </div>
 
 ---
+
+## 📚 Documentation Files 
+
+Complete documentation is organized into specialized guides for different audiences:
+
+### 🎯 Choose Your Starting Point
+
+| Document | Best For |
+|----------|----------|
+| **[README_DETAILED.md](./README_DETAILED.md)** | Full project overview | 
+| **[COMPONENTS_SCREENS.md](./COMPONENTS_SCREENS.md)** | Building UI components | 
+| **[API_ARCHITECTURE.md](./API_ARCHITECTURE.md)** | Understanding backend APIs | 
+| **[DEPENDENCIES_SETUP.md](./DEPENDENCIES_SETUP.md)** | Environment setup & config 
+
+
+**About Components and Screens**
+```
+→ COMPONENTS_SCREENS.md
+```
+
+**Integrating APIs**
+```
+→ API_ARCHITECTURE.md (with code examples)
+```
+
+**Dependencies and Setup**
+```
+→ DEPENDENCIES_SETUP.md (Android/iOS config)
+```
+
+**Full App detailed workflow**
+```
+→ README_DETAILED.md (complete overview)
+```
+___
 
 ## ✨ Features
 
@@ -57,41 +90,7 @@ A comprehensive React Native mobile application providing real-time emergency sa
 - Local data encryption
 - Permission-based access control
 
----
 
-## 📚 Documentation
-
-Complete documentation is organized into specialized guides for different audiences:
-
-### 🎯 Choose Your Starting Point
-
-| Document | Best For |
-|----------|----------|
-| **[README_DETAILED.md](./README_DETAILED.md)** | Full project overview | 
-| **[COMPONENTS_SCREENS.md](./COMPONENTS_SCREENS.md)** | Building UI components | 
-| **[API_ARCHITECTURE.md](./API_ARCHITECTURE.md)** | Understanding backend APIs | 
-| **[DEPENDENCIES_SETUP.md](./DEPENDENCIES_SETUP.md)** | Environment setup & config 
-
-
-**Building Components?**
-```
-→ COMPONENTS_SCREENS.md
-```
-
-**Integrating APIs?**
-```
-→ API_ARCHITECTURE.md (with code examples)
-```
-
-**Setting Up Environment?**
-```
-→ DEPENDENCIES_SETUP.md (Android/iOS config)
-```
-
-**Understanding the App?**
-```
-→ README_DETAILED.md (complete overview)
-```
 
 ---
 
@@ -213,89 +212,29 @@ RakshakAPP/
 
 ## 💻 Tech Stack
 
-### Frontend
-- **React** 19.2.4
-- **React Native** 0.83.1
-- **TypeScript** 5.8.3
-- **React Navigation** 7.x (Stack + Tabs)
-
-### Core Features
-- **Audio**: react-native-audio-record, Voice-to-text
-- **Location**: react-native-geolocation-service, Google Maps
-- **Camera**: react-native-vision-camera
-- **SMS**: react-native-get-sms-android
-- **Storage**: AsyncStorage
-
-### UI Components
-- react-native-elements
-- react-native-heroicons
-- react-native-svg
-
-### Development
-- Jest (testing)
-- ESLint + Prettier (code quality)
-- Babel (transpilation)
-
 **👉 Full dependency list:** [DEPENDENCIES_SETUP.md](./DEPENDENCIES_SETUP.md)
+
+
+
 
 ---
 
-## 🔌 API Endpoints
+## 🔌 API Endpoints and Web Dashboard Using Nextjs 
 
-Backend: `https://rakshak-gamma.vercel.app`
-
-### Key Endpoints
-
+Backend:
+`https://rakshak-gamma.vercel.app/api`
+Web dashboard: 
+https:`https//rakshak-gamma.vercel.app`
 
 **👉 Complete API reference:** [API_ARCHITECTURE.md](./API_ARCHITECTURE.md)
 
 ---
 
-### Permissions Required
-
-**Android:**
-- Location (fine, coarse, background)
-- Camera & Microphone
-- Storage (read/write)
-- Contacts
-- SMS (send/receive)
-
-**iOS:**
-- Location
-- Camera
-- Microphone
-- Contacts
-- Photos
-
----
-
-
 ## 🚨 SOS Workflow
-
 
 **👉 Detailed workflow:** [README_DETAILED.md](./README_DETAILED.md)
 
 ---
-
-## 🛠️ Development
-
-### Available Commands
-
-```bash
-# Start development
-npm start                 # Start Metro bundler
-npm run android          # Run on Android
-npm run ios              # Run on iOS
-
-# Code quality
-npm run lint             # Check code
-npm run format           # Auto-format code
-
-# Testing
-npm test                 # Run tests
-npm run build            # Production build
-```
-
 ### Project Statistics
 
 | Metric | Value |
