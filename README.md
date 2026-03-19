@@ -31,122 +31,26 @@ Complete documentation is organized into specialized guides for different audien
 
 
 **About Components and Screens**
-```
-→ COMPONENTS_SCREENS.md
-```
+**[COMPONENTS_SCREENS.md](./COMPONENTS_SCREENS.md)**
 
 **Integrating APIs**
-```
-→ API_ARCHITECTURE.md (with code examples)
-```
+**[API_ARCHITECTURE.md](./API_ARCHITECTURE.md)** 
+
 
 **Dependencies and Setup**
-```
-→ DEPENDENCIES_SETUP.md (Android/iOS config)
-```
+**[DEPENDENCIES_SETUP.md](./DEPENDENCIES_SETUP.md)**
 
 **Full App detailed workflow**
-```
-→ README_DETAILED.md (complete overview)
-```
-___
-
-## ✨ Features
-
-### 🚨 Emergency SOS System
-- **One-Tap SOS**: Press the big red button to trigger emergency protocol
-- **Real-Time Location Tracking**: Continuous GPS updates every 40 seconds
-- **Audio Recording**: Automatic microphone capture (up to 2 minutes)
-- **Photo Auto-Capture**: Continuous camera snapshots during emergency
-- **Automated SMS Alerts**: Instant notifications to trusted contacts with location
-- **Voice Activation**: Trigger SOS with custom code word detection
-
-### 👥 Smart Contact Management
-- Add/remove emergency contacts from phone
-- Customize emergency messages
-- Set primary emergency contact
-- Real-time contact synchronization
-
-### 🗺️ Location & Navigation
-- Real-time interactive maps
-- Accuracy radius visualization
-- Reverse geolocation (place name lookup)
-- Location history tracking
-
-### 🎓 Educational Resources
-- Safety tips in 4 categories (Home, Travel, Digital, Workplace)
-- Bilingual support (English & Hindi)
-- Animated tips display
-
-### 📊 Analytics & History
-- Complete SOS alert history
-- Media playback (audio & photos)
-- Location replay on maps
-- Status tracking & analytics
-
-### 🔐 User Security
-- Phone-based authentication
-- Secure session management
-- Local data encryption
-- Permission-based access control
-
-
-
----
-
-## 🚀 Quick Start
-
-### 1. Prerequisites
-```bash
-Node.js ≥20.0.0
-npm ≥10.0.0
-Android SDK (for Android)
-Xcode (for iOS)
-```
-
-### 2. Install Dependencies
-```bash
-# Clone repo
-git clone https://github.com/yourusername/Rakshak-React-Native.git
-cd Rakshak-React-Native/RakshakAPP
-
-# Install packages
-npm install
-
-# iOS only
-cd ios && pod install && cd ..
-```
-
-### 3. Run App
-```bash
-# Android
-npm run android
-
-# iOS
-npm run ios
-
-# Or start Metro bundler
-npm start
-```
-
-### 4. Setup User Profile
-- Login/Register at startup
-- Set emergency code word
-- Add trusted emergency contacts
-- Configure emergency message
-
-### 5. Test SOS
-- Press red SOS button on Home tab
-- Watch real-time tracking
-- Check SMS notifications
+ **[README_DETAILED.md](./README_DETAILED.md)**
 
 
 ---
 
 ## 🏗️ Architecture
 
-```
 **👉 Detailed architecture:** [API_ARCHITECTURE.md](./API_ARCHITECTURE.md
+
+```
 
 ┌─────────────────────────┐
 │   App.tsx (Entry)       │
@@ -247,7 +151,95 @@ https:`https//rakshak-gamma.vercel.app`
 | **Lines of Code** | 5000+ |
 
 ---
+## ✨ Features
 
+### 🚨 Emergency SOS System
+- **One-Tap SOS**: Press the big red button to trigger emergency protocol
+- **Real-Time Location Tracking**: Continuous GPS updates every 40 seconds
+- **Audio Recording**: Automatic microphone capture (up to 2 minutes)
+- **Photo Auto-Capture**: Continuous camera snapshots during emergency
+- **Automated SMS Alerts**: Instant notifications to trusted contacts with location
+- **Voice Activation**: Trigger SOS with custom code word detection
+
+### 👥 Smart Contact Management
+- Add/remove emergency contacts from phone
+- Customize emergency messages
+- Set primary emergency contact
+- Real-time contact synchronization
+
+### 🗺️ Location & Navigation
+- Real-time interactive maps
+- Accuracy radius visualization
+- Reverse geolocation (place name lookup)
+- Location history tracking
+
+### 🎓 Educational Resources
+- Safety tips in 4 categories (Home, Travel, Digital, Workplace)
+- Bilingual support (English & Hindi)
+- Animated tips display
+
+### 📊 Analytics & History
+- Complete SOS alert history
+- Media playback (audio & photos)
+- Location replay on maps
+- Status tracking & analytics
+
+### 🔐 User Security
+- Phone-based authentication
+- Secure session management
+- Local data encryption
+- Permission-based access control
+
+
+
+---
+
+## 🚀 Quick Start
+
+### 1. Prerequisites
+```bash
+Node.js ≥20.0.0
+npm ≥10.0.0
+Android SDK (for Android)
+Xcode (for iOS)
+```
+
+### 2. Install Dependencies
+```bash
+# Clone repo
+git clone https://github.com/yourusername/Rakshak-React-Native.git
+cd Rakshak-React-Native/RakshakAPP
+
+# Install packages
+npm install
+
+# iOS only
+cd ios && pod install && cd ..
+```
+
+### 3. Run App
+```bash
+# Android
+npm run android
+
+# iOS
+npm run ios
+
+# Or start Metro bundler
+npm start
+```
+
+### 4. Setup User Profile
+- Login/Register at startup
+- Set emergency code word
+- Add trusted emergency contacts
+- Configure emergency message
+
+### 5. Test SOS
+- Press red SOS button on Home tab
+- Watch real-time tracking
+- Check SMS notifications
+---
 ## 🐛 Troubleshooting
 
 ### Common Issues
