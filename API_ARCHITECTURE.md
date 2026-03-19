@@ -1,4 +1,6 @@
-# 📚 RAKSHAK - API Reference & Architecture Documentation
+# 📚 RAKSHAK - API Reference & Web Dashboard.
+
+Api and Dashboard GitHub: https://github.com/Samad10jan/rakshak
 
 ## Table of Contents
 1. [API Reference](#api-reference)
@@ -56,7 +58,6 @@
 ## 📡 API Reference
 
 All endpoints are prefixed with `https://rakshak-gamma.vercel.app/api/`
-
 ### 🔐 Authentication
 
 | Method | Endpoint | Description |
@@ -242,7 +243,7 @@ CLOUDINARY_API_SECRET=...
 JWT_SECRET=...
 ```
 
-### Install & Run
+### Install & Run 
 
 ```bash
 git clone https://github.com/Samad10jan/rakshak
@@ -252,7 +253,7 @@ npm run dev
 ```
 
 ---
-## 📁 Project Structure
+## 📁 Project Structure of rakshak web app
 ```
 RAKSHAK/
 ├── .next/
@@ -292,7 +293,7 @@ RAKSHAK/
 
 ```
 
-## 📁 APi Structure
+## 📁 API Structure
 
 ```
 src/
@@ -535,7 +536,7 @@ enum Status {
 
                          ▼
         ┌────────────────────────────────┐
-        │  Services Layer (8 Services)   │
+        │  Services Layer (8 Services)  │
         ├────────────────────────────────┤
         │  ├─ sosApi.ts (API calls)      │
         │  ├─ locationService.ts (GPS)   │
@@ -557,19 +558,17 @@ enum Status {
 
                          ▼
         ┌────────────────────────────────┐
-        │  External APIs                 │
+        │  External APIs                │
         ├────────────────────────────────┤
         │  ├─ Backend Server             │
         │  ├─ Google Maps                │
-        │  ├─ Nominatim (OSM)            │
         │  ├─ OneSignal                  │
-        │  └─ Device Services            │
-        └────────────────────────────────┘
+                        └────────────────────────────────┘
 ```
 
 ---
 
-### Data Flow Architecture
+### Frontend to Backend Data Flow Architecture
 
 ```
 SOS Triggered
@@ -834,16 +833,5 @@ CameraContext         → Global camera state
 NavigationContext     → Built-in React Navigation
 SafeAreaContext       → Safe area insets
 ```
-
----
-
-## Conclusion
-
-This architecture ensures:
-- ✅ **Modularity**: Each service has single responsibility
-- ✅ **Reusability**: Services used across components
-- ✅ **Testability**: Services can be unit tested
-- ✅ **Maintainability**: Clear separation of concerns
-- ✅ **Scalability**: Easy to add new services/features
 
 ---
