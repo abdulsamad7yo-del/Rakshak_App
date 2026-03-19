@@ -390,14 +390,11 @@ RakshakAPP/
 - **Node.js** `>=20.0.0`
 - **npm** or **yarn**
 - **Android SDK** (for Android development)
-- **Xcode** (for iOS development)
-- **Ruby** (for iOS pod installation)
 
 ### Step 1: Clone Repository
 
 ```bash
-git clone https://github.com/yourusername/Rakshak-React-Native.git
-cd Rakshak-React-Native/RakshakAPP
+git clone https://github.com/abdulsamad7yo-del/Rakshak_App
 ```
 
 ### Step 2: Install Dependencies
@@ -418,11 +415,9 @@ pod install
 cd ..
 ```
 
-### Step 4: Environment Variables
+### Step 4:
 
-Create a `.env` file in the root directory:
-
-```env
+```
 API_BASE_URL=https://rakshak-gamma.vercel.app
 GOOGLE_MAPS_API_KEY=your_google_maps_api_key
 NOMINATIM_BASE_URL=https://nominatim.openstreetmap.org
@@ -751,56 +746,14 @@ npm start -- --reset-cache
 
 ---
 
-## 🤝 Contributing
 
-### Step 1: Fork Repository
-```bash
-git clone https://github.com/yourusername/Rakshak-React-Native.git
-```
-
-### Step 2: Create Feature Branch
-```bash
-git checkout -b feature/your-feature-name
-```
-
-### Step 3: Commit Changes
-```bash
-git commit -m "Add: Your feature description"
-```
-
-### Step 4: Push to Branch
-```bash
-git push origin feature/your-feature-name
-```
-
-### Step 5: Submit Pull Request
-- Describe changes in detail
-- Include screenshots if UI changes
-- Reference related issues
-
-### Code Style Guidelines
-
-- **Naming**: camelCase for variables/functions, PascalCase for components
-- **TypeScript**: Always use types
-- **Comments**: JSDoc for functions
-- **Formatting**: Use Prettier (npm run format)
-- **Linting**: Pass ESLint checks (npm run lint)
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
----
-
-## 👨‍💼 Author & Contact
+## Contact
 
 **Rakshak Development Team**
 
-- **Email**: support@rakshak.app
 - **Website**: https://rakshak-gamma.vercel.app
-- **GitHub**: https://github.com/rakshak-safety
+- **Frontend GitHub**:https://github.com/abdulsamad7yo-del/Rakshak_App
+- **Backend GitHub**: https://github.com/Samad10jan/rakshak
 
 ---
 
@@ -857,17 +810,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-## 🆘 Support
 
-For issues, questions, or suggestions:
-
-1. Check existing [GitHub Issues](https://github.com/yourusername/Rakshak-React-Native/issues)
-2. Create a new [GitHub Issue](https://github.com/yourusername/Rakshak-React-Native/issues/new)
-3. Contact: support@rakshak.app
-4. Emergency: Call local emergency services (911, 112, etc.)
-
----
-
-**Made with ❤️ for Safety & Security**
-
-*Last Updated: March 2026*
