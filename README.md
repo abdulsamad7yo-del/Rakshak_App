@@ -34,6 +34,7 @@ Complete documentation is organized into specialized guides for different audien
 **[COMPONENTS_SCREENS.md](./COMPONENTS_SCREENS.md)**
 
 **Integrating APIs**
+
 **[API_ARCHITECTURE.md](./API_ARCHITECTURE.md)** 
 
 
@@ -48,7 +49,7 @@ Complete documentation is organized into specialized guides for different audien
 
 ## 🏗️ Architecture
 
-**👉 Detailed architecture:** [API_ARCHITECTURE.md](./API_ARCHITECTURE.md
+**👉 Detailed architecture:** [API_ARCHITECTURE.md](./API_ARCHITECTURE.md)
 
 ```
 
