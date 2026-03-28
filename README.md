@@ -1,4 +1,4 @@
-# <img width="34" height="38" alt="rakshak" src="https://github.com/user-attachments/assets/0b6b32c2-abec-46a2-9aaf-330d6227fe4a" /> Rakshak — Women Safety Platform
+# <img width="34" height="38" alt="rakshak" src="https://github.com/user-attachments/assets/0b6b32c2-abec-46a2-9aaf-330d6227fe4a" /> Rakshak — Women Safety App
 
 <div align="center">
 
